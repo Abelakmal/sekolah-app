@@ -1,0 +1,364 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>PRD Administrasi Guru MVP 2.0</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        color: #111827;
+        line-height: 1.5;
+        margin: 36px;
+      }
+      h1 {
+        font-size: 24px;
+        margin: 0 0 8px;
+        text-align: center;
+      }
+      h2 {
+        font-size: 18px;
+        margin: 28px 0 10px;
+        border-bottom: 1px solid #d1d5db;
+        padding-bottom: 6px;
+      }
+      h3 {
+        font-size: 15px;
+        margin: 18px 0 8px;
+      }
+      p {
+        margin: 6px 0;
+      }
+      ul, ol {
+        margin-top: 6px;
+      }
+      li {
+        margin-bottom: 4px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 10px 0 18px;
+      }
+      th, td {
+        border: 1px solid #d1d5db;
+        padding: 8px;
+        vertical-align: top;
+      }
+      th {
+        background: #eff6ff;
+        font-weight: bold;
+      }
+      .subtitle {
+        text-align: center;
+        color: #4b5563;
+        margin-bottom: 28px;
+      }
+      .note {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        padding: 12px;
+        margin: 14px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Product Requirements Document (PRD)</h1>
+    <p class="subtitle">Administrasi Guru - Bank Pembelajaran dan Builder Modul Ajar PJOK SD</p>
+
+    <h2>1. Latar Belakang</h2>
+    <p>
+      Guru PJOK SD membutuhkan banyak waktu untuk membuat perangkat pembelajaran karena dokumen yang sama
+      sering disusun ulang setiap semester atau tahun ajaran. Berdasarkan contoh dokumen asli
+      <strong>PERANGKAT_PEMBELAJARAN.pdf</strong>, kebutuhan guru tidak berhenti pada penyimpanan topik,
+      materi, aktivitas, dan asesmen. Guru juga membutuhkan penyusunan dokumen Modul Ajar lengkap beserta
+      LKPD, instrumen penilaian, rubrik, glosarium, lampiran, dan tanda tangan.
+    </p>
+    <p>
+      Produk ini akan menjadi tempat penyimpanan komponen pembelajaran yang dapat digunakan ulang dan
+      builder untuk menghasilkan file dokumen administrasi guru dalam format Word.
+    </p>
+
+    <h2>2. Tujuan Produk</h2>
+    <ul>
+      <li>Membantu guru PJOK SD mengelola bank pembelajaran berdasarkan kelas dan topik.</li>
+      <li>Mengubah komponen bank menjadi dokumen Modul Ajar yang lebih mendekati format administrasi guru asli.</li>
+      <li>Mengurangi pengulangan penulisan dokumen setiap semester atau tahun ajaran.</li>
+      <li>Menyediakan arsip administrasi yang dapat dibuka kembali dan diunduh sebagai file Word.</li>
+    </ul>
+
+    <h2>3. Target Pengguna</h2>
+    <table>
+      <tr>
+        <th>Pengguna</th>
+        <th>Kebutuhan Utama</th>
+      </tr>
+      <tr>
+        <td>Admin</td>
+        <td>Membuat akun guru, mengubah data guru, menentukan kelas yang diajar.</td>
+      </tr>
+      <tr>
+        <td>Guru PJOK SD</td>
+        <td>Mengelola topik, bank pembelajaran, menyusun Modul Ajar, dan mengunduh dokumen Word.</td>
+      </tr>
+    </table>
+
+    <h2>4. Ruang Lingkup MVP Lanjutan</h2>
+    <ul>
+      <li>Single user untuk satu guru.</li>
+      <li>Login masih simulasi role Admin dan Guru.</li>
+      <li>Data tersimpan lokal di browser menggunakan localStorage.</li>
+      <li>Fokus pada PJOK SD kelas 1 sampai 6.</li>
+      <li>Kelas bukan modul sidebar; kelas digunakan sebagai filter di Topik Pembelajaran dan Builder.</li>
+      <li>Topik Pembelajaran menjadi pusat pengelolaan bank.</li>
+      <li>Detail Topik menampilkan tab komponen bank pembelajaran.</li>
+      <li>Builder menghasilkan draft administrasi dan file Word.</li>
+    </ul>
+
+    <h2>5. Navigasi Aplikasi</h2>
+    <p>Sidebar Guru dibuat sederhana:</p>
+    <ul>
+      <li>Dashboard</li>
+      <li>Topik Pembelajaran</li>
+      <li>Penyusun Administrasi</li>
+      <li>Arsip Administrasi</li>
+    </ul>
+    <p>Sidebar Admin:</p>
+    <ul>
+      <li>Admin Guru</li>
+    </ul>
+
+    <h2>6. Struktur Data Inti</h2>
+    <h3>6.1 Profil Guru dan Sekolah</h3>
+    <table>
+      <tr><th>Field</th><th>Keterangan</th></tr>
+      <tr><td>Nama guru</td><td>Nama penyusun dokumen.</td></tr>
+      <tr><td>Email</td><td>Identitas akun simulasi.</td></tr>
+      <tr><td>No UKG/NIP/NUPTK/NIM</td><td>Identitas tambahan sesuai kebutuhan guru.</td></tr>
+      <tr><td>Instansi</td><td>Nama sekolah.</td></tr>
+      <tr><td>Kepala sekolah</td><td>Nama dan NIP kepala sekolah untuk tanda tangan.</td></tr>
+      <tr><td>Kelas ajar</td><td>Kelas 1 sampai 6 yang ditentukan admin.</td></tr>
+    </table>
+
+    <h3>6.2 Topik Pembelajaran</h3>
+    <table>
+      <tr><th>Field</th><th>Keterangan</th></tr>
+      <tr><td>Kelas</td><td>Filter dan konteks topik.</td></tr>
+      <tr><td>Judul topik</td><td>Contoh: Permainan Invasi Bola Voli (Passing Bawah).</td></tr>
+      <tr><td>Materi pokok</td><td>Materi utama yang muncul di cover dan identitas modul.</td></tr>
+      <tr><td>Sub materi</td><td>Opsional, contoh: Teknik Dasar Passing Bawah.</td></tr>
+      <tr><td>Deskripsi</td><td>Ringkasan topik untuk bank.</td></tr>
+    </table>
+
+    <h2>7. Bank Pembelajaran per Topik</h2>
+    <p>Setelah guru klik topik, aplikasi masuk ke halaman Detail Topik. Di halaman ini muncul tab bank.</p>
+
+    <h3>7.1 Tab Informasi Modul</h3>
+    <ul>
+      <li>Fase/Kelas</li>
+      <li>Tahun ajaran</li>
+      <li>Semester</li>
+      <li>Bab/Pertemuan</li>
+      <li>Alokasi waktu</li>
+      <li>Mode pembelajaran: teori, praktik, atau teori dan praktik</li>
+      <li>Jumlah peserta didik</li>
+      <li>Target peserta didik</li>
+    </ul>
+
+    <h3>7.2 Tab Kompetensi dan Tujuan</h3>
+    <ul>
+      <li>Komponen awal</li>
+      <li>Capaian pembelajaran</li>
+      <li>Tujuan pembelajaran</li>
+      <li>Pemahaman bermakna</li>
+      <li>Pertanyaan pemantik</li>
+      <li>Profil Pelajar Pancasila</li>
+    </ul>
+
+    <h3>7.3 Tab Materi dan Media</h3>
+    <ul>
+      <li>Judul materi</li>
+      <li>Deskripsi materi</li>
+      <li>Bahan bacaan guru dan peserta didik</li>
+      <li>Media pembelajaran</li>
+      <li>Alat dan bahan</li>
+      <li>Sumber belajar</li>
+      <li>Link video pembelajaran</li>
+      <li>Lampiran file</li>
+    </ul>
+
+    <h3>7.4 Tab Aktivitas Pembelajaran</h3>
+    <ul>
+      <li>Kegiatan pendahuluan beserta durasi.</li>
+      <li>Kegiatan inti beserta durasi.</li>
+      <li>Kegiatan penutup beserta durasi.</li>
+      <li>Sintaks pembelajaran berdiferensiasi.</li>
+      <li>Diferensiasi konten.</li>
+      <li>Diferensiasi proses.</li>
+      <li>Diferensiasi lingkungan belajar.</li>
+      <li>Aktivitas teori di kelas.</li>
+      <li>Aktivitas praktik di lapangan.</li>
+    </ul>
+
+    <h3>7.5 Tab Asesmen dan Rubrik</h3>
+    <ul>
+      <li>Asesmen diagnostik non-kognitif.</li>
+      <li>Asesmen formatif.</li>
+      <li>Asesmen sumatif.</li>
+      <li>Rubrik penilaian kelompok.</li>
+      <li>Rubrik tugas individu.</li>
+      <li>Penilaian praktik.</li>
+      <li>Format penilaian sikap.</li>
+      <li>Format penilaian pengetahuan.</li>
+      <li>Format penilaian praktik.</li>
+      <li>Kriteria skor dan predikat.</li>
+    </ul>
+
+    <h3>7.6 Tab LKPD</h3>
+    <ul>
+      <li>LKPD berkelompok.</li>
+      <li>LKPD individu.</li>
+      <li>Nama kelompok dan daftar anggota.</li>
+      <li>Daftar soal.</li>
+      <li>Area jawaban.</li>
+      <li>Lembar jawaban atau kunci jawaban.</li>
+    </ul>
+
+    <h3>7.7 Tab Lampiran</h3>
+    <ul>
+      <li>Bahan bacaan guru dan peserta didik.</li>
+      <li>Media pembelajaran.</li>
+      <li>LKPD.</li>
+      <li>Instrumen penilaian.</li>
+      <li>Glosarium.</li>
+      <li>Gambar atau file pendukung.</li>
+    </ul>
+
+    <h2>8. Penyusun Administrasi</h2>
+    <p>Builder digunakan untuk membuat satu dokumen Modul Ajar dari data bank yang sudah tersimpan.</p>
+    <ol>
+      <li>Pilih kelas.</li>
+      <li>Pilih topik dari kelas tersebut.</li>
+      <li>Lengkapi identitas modul.</li>
+      <li>Pilih kompetensi dan tujuan.</li>
+      <li>Pilih materi dan media.</li>
+      <li>Pilih aktivitas pembelajaran.</li>
+      <li>Pilih asesmen dan rubrik.</li>
+      <li>Pilih LKPD.</li>
+      <li>Pilih lampiran.</li>
+      <li>Review ringkasan.</li>
+      <li>Simpan draft dan download Word.</li>
+    </ol>
+
+    <h2>9. Format Output Word</h2>
+    <p>File Word yang dihasilkan harus mengikuti urutan dokumen asli:</p>
+    <ol>
+      <li>Cover Modul Ajar.</li>
+      <li>Informasi Umum.</li>
+      <li>Identitas Modul.</li>
+      <li>Komponen Awal.</li>
+      <li>Profil Pelajar Pancasila.</li>
+      <li>Sarana dan Prasarana.</li>
+      <li>Target Peserta Didik dan Jumlah Peserta Didik.</li>
+      <li>Model dan Metode Pembelajaran.</li>
+      <li>Kompetensi Inti.</li>
+      <li>Capaian Pembelajaran.</li>
+      <li>Tujuan Pembelajaran.</li>
+      <li>Pemahaman Bermakna.</li>
+      <li>Pertanyaan Pemantik.</li>
+      <li>Asesmen Diagnostik Non-Kognitif.</li>
+      <li>Persiapan Pembelajaran.</li>
+      <li>Urutan Kegiatan Pembelajaran.</li>
+      <li>Refleksi Guru.</li>
+      <li>Refleksi Peserta Didik.</li>
+      <li>Asesmen/Penilaian.</li>
+      <li>Kegiatan Pengayaan dan Remedial.</li>
+      <li>Lampiran.</li>
+      <li>Tanda tangan kepala sekolah dan guru.</li>
+    </ol>
+
+    <h2>10. Dashboard</h2>
+    <ul>
+      <li>Jumlah topik pembelajaran.</li>
+      <li>Jumlah tujuan pembelajaran.</li>
+      <li>Jumlah materi/media.</li>
+      <li>Jumlah aktivitas pembelajaran.</li>
+      <li>Jumlah asesmen/rubrik.</li>
+      <li>Jumlah LKPD.</li>
+      <li>Jumlah administrasi tersimpan.</li>
+    </ul>
+
+    <h2>11. Pencarian dan Filter</h2>
+    <ul>
+      <li>Filter kelas pada Topik Pembelajaran.</li>
+      <li>Filter kelas pada Penyusun Administrasi.</li>
+      <li>Cari topik.</li>
+      <li>Cari tujuan pembelajaran.</li>
+      <li>Cari materi/media.</li>
+      <li>Cari aktivitas.</li>
+      <li>Cari asesmen/rubrik.</li>
+      <li>Cari LKPD dan lampiran.</li>
+    </ul>
+
+    <h2>12. Non-Functional Requirements</h2>
+    <ul>
+      <li>Antarmuka sederhana dan fokus pada pekerjaan guru.</li>
+      <li>Desktop/laptop sebagai target utama.</li>
+      <li>Responsif untuk tablet.</li>
+      <li>Halaman utama memuat kurang dari 2 detik untuk data normal.</li>
+      <li>Perubahan tersimpan setelah pengguna klik simpan.</li>
+      <li>Export Word harus tetap dapat dibuka walau belum memakai template DOCX native.</li>
+    </ul>
+
+    <h2>13. Prioritas Implementasi</h2>
+    <table>
+      <tr>
+        <th>Prioritas</th>
+        <th>Fitur</th>
+        <th>Alasan</th>
+      </tr>
+      <tr>
+        <td>P0</td>
+        <td>Perluasan data Modul Ajar dan output Word sesuai struktur PDF.</td>
+        <td>Ini inti kebutuhan dokumen asli guru.</td>
+      </tr>
+      <tr>
+        <td>P0</td>
+        <td>Tab Informasi Modul, Kompetensi, Aktivitas Terstruktur, Asesmen/Rubrik, LKPD, Lampiran.</td>
+        <td>Tanpa ini builder masih hanya ringkasan bank.</td>
+      </tr>
+      <tr>
+        <td>P1</td>
+        <td>Arsip administrasi dengan preview dokumen.</td>
+        <td>Membantu guru mengecek hasil sebelum download.</td>
+      </tr>
+      <tr>
+        <td>P1</td>
+        <td>Template dokumen Word lebih rapi.</td>
+        <td>Mendekatkan hasil export dengan dokumen administrasi nyata.</td>
+      </tr>
+      <tr>
+        <td>P2</td>
+        <td>Export DOCX native.</td>
+        <td>Butuh dependency tambahan dan pemetaan style lebih serius.</td>
+      </tr>
+    </table>
+
+    <h2>14. Acceptance Criteria</h2>
+    <ul>
+      <li>Guru dapat memilih kelas lalu melihat topik sesuai kelas.</li>
+      <li>Guru dapat membuka detail topik dan mengisi seluruh komponen Modul Ajar.</li>
+      <li>Guru dapat menyusun administrasi dari topik yang dipilih.</li>
+      <li>Modal simpan menampilkan ringkasan komponen yang akan masuk dokumen.</li>
+      <li>File Word yang diunduh memiliki struktur Modul Ajar seperti dokumen asli.</li>
+      <li>Draft administrasi tersimpan di Arsip Administrasi.</li>
+      <li>Data tetap ada setelah browser di-refresh.</li>
+    </ul>
+
+    <h2>15. Catatan Produk</h2>
+    <div class="note">
+      Aplikasi sebaiknya tetap sederhana dari sisi navigasi. Penambahan data tidak perlu menambah banyak menu
+      sidebar. Kompleksitas cukup diletakkan di Detail Topik dan Builder karena dua area itu memang menjadi
+      pusat kerja guru.
+    </div>
+  </body>
+</html>

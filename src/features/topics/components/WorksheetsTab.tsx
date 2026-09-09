@@ -94,7 +94,7 @@ export function WorksheetsTab({ query, setState, state, topic }: WorksheetsTabPr
       {(editing || draft.title || draft.instructions || draft.questions || draft.answerArea || draft.answerKey) && (
         <FormPanel title={editing ? 'Edit LKPD' : 'Tambah LKPD'} onCancel={() => reset()} onSave={save}>
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Jenis LKPD</label>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Jenis LKPD</label>
             <select className="input" onChange={(event) => setDraft((current) => ({ ...current, type: event.target.value as WorksheetType }))} value={draft.type}>
               <option>Berkelompok</option>
               <option>Individu</option>

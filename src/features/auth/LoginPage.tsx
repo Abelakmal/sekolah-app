@@ -1,5 +1,4 @@
 import { BriefcaseBusiness, LockKeyhole, Mail } from 'lucide-react'
-import type { AppState } from '../../core/types'
 
 const classroomImageUrl =
   'https://images.unsplash.com/photo-1758270705696-ec9caffc73dd?auto=format&fit=crop&ixlib=rb-4.1.0&q=80&w=1600'
@@ -11,10 +10,9 @@ type LoginPageProps = {
   onPasswordChange: (password: string) => void
   onSubmit: () => void
   password: string
-  state: AppState
 }
 
-export function LoginPage({ email, error, onEmailChange, onPasswordChange, onSubmit, password, state }: LoginPageProps) {
+export function LoginPage({ email, error, onEmailChange, onPasswordChange, onSubmit, password }: LoginPageProps) {
   return (
     <main className="grid min-h-screen place-items-center bg-slate-100 px-4 py-8 text-slate-950 sm:px-6">
       <section className="grid w-full max-w-5xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm lg:min-h-[680px] lg:grid-cols-[1fr_420px]">
@@ -32,10 +30,7 @@ export function LoginPage({ email, error, onEmailChange, onPasswordChange, onSub
               </p>
             </div>
 
-            <div className="grid gap-3 text-sm text-blue-100">
-              <CredentialRow label="Guru" tone="dark" value={state.teacher.email} />
-              <CredentialRow label="Admin" tone="dark" value="admin@sekolah.test" />
-            </div>
+            <p className="text-sm leading-6 text-blue-100">Login memakai akun Supabase Auth yang dibuat admin sekolah.</p>
           </div>
         </div>
 
@@ -97,21 +92,11 @@ export function LoginPage({ email, error, onEmailChange, onPasswordChange, onSub
             </button>
           </form>
 
-          <div className="mt-6 grid gap-2 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
-            <CredentialRow label="Guru" value={`${state.teacher.email} / guru123`} />
-            <CredentialRow label="Admin" value="admin@sekolah.test / admin123" />
+          <div className="mt-6 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-slate-600">
+            Masukkan email dan password akun yang sudah terdaftar di Supabase.
           </div>
         </div>
       </section>
     </main>
-  )
-}
-
-function CredentialRow({ label, tone = 'light', value }: { label: string; tone?: 'dark' | 'light'; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <span className={tone === 'dark' ? 'font-semibold text-blue-50' : 'font-semibold text-slate-700'}>{label}</span>
-      <span className="truncate text-right">{value}</span>
-    </div>
   )
 }

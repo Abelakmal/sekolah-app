@@ -7,6 +7,7 @@ import { createId } from '../../../core/utils'
 import { NumberField, TextArea, TextField } from '../../../shared/components/FormControls'
 import { FormPanel } from '../../../shared/components/FormPanel'
 import { confirmDelete } from '../../../shared/utils/confirmDelete'
+import { AutoSavedNotice, BankSection } from './BankSection'
 import { CrudSection } from './CrudSection'
 
 type AssessmentsTabProps = {
@@ -18,6 +19,16 @@ type AssessmentsTabProps = {
 
 export function AssessmentsTab({ query, setState, state, topic }: AssessmentsTabProps) {
   const moduleAssessments = getModuleAssessments(state, topic)
+  const assessmentComplete = Boolean(
+    moduleAssessments.diagnosticAssessment && moduleAssessments.formativeAssessment && moduleAssessments.summativeAssessment,
+  )
+  const individualFormatComplete = Boolean(
+    moduleAssessments.individualRubricObjective &&
+      moduleAssessments.individualRubricTiming &&
+      moduleAssessments.individualScoreScale &&
+      moduleAssessments.practiceTask &&
+      moduleAssessments.practiceCriteria,
+  )
 
   function updateModuleAssessments(patch: Partial<ModuleAssessments>) {
     setState((current) => ({
@@ -35,7 +46,8 @@ export function AssessmentsTab({ query, setState, state, topic }: AssessmentsTab
   return (
     <div className="grid gap-5">
       <section className="rounded-lg border border-slate-200 bg-white p-5">
-        <div className="mb-4 flex items-center gap-3">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-center gap-3">
           <div className="grid size-10 place-items-center rounded-md bg-rose-50 text-rose-700">
             <ClipboardCheck size={19} />
           </div>
@@ -43,24 +55,28 @@ export function AssessmentsTab({ query, setState, state, topic }: AssessmentsTab
             <h3 className="text-base font-semibold">Asesmen Pembelajaran</h3>
             <p className="text-sm text-slate-500">Pisahkan asesmen diagnostik, formatif, dan sumatif sesuai format Modul Ajar.</p>
           </div>
+          </div>
+          <AutoSavedNotice />
         </div>
-        <div className="grid gap-4 lg:grid-cols-3">
-          <TextArea
-            label="Asesmen Diagnostik"
-            onChange={(diagnosticAssessment) => updateModuleAssessments({ diagnosticAssessment })}
-            value={moduleAssessments.diagnosticAssessment}
-          />
-          <TextArea
-            label="Asesmen Formatif"
-            onChange={(formativeAssessment) => updateModuleAssessments({ formativeAssessment })}
-            value={moduleAssessments.formativeAssessment}
-          />
-          <TextArea
-            label="Asesmen Sumatif"
-            onChange={(summativeAssessment) => updateModuleAssessments({ summativeAssessment })}
-            value={moduleAssessments.summativeAssessment}
-          />
-        </div>
+        <BankSection defaultOpen isComplete={assessmentComplete} title="Diagnostik, Formatif, dan Sumatif">
+          <div className="grid gap-6 lg:grid-cols-3">
+            <TextArea
+              label="Asesmen Diagnostik"
+              onChange={(diagnosticAssessment) => updateModuleAssessments({ diagnosticAssessment })}
+              value={moduleAssessments.diagnosticAssessment}
+            />
+            <TextArea
+              label="Asesmen Formatif"
+              onChange={(formativeAssessment) => updateModuleAssessments({ formativeAssessment })}
+              value={moduleAssessments.formativeAssessment}
+            />
+            <TextArea
+              label="Asesmen Sumatif"
+              onChange={(summativeAssessment) => updateModuleAssessments({ summativeAssessment })}
+              value={moduleAssessments.summativeAssessment}
+            />
+          </div>
+        </BankSection>
       </section>
 
       <RubricEditor
@@ -75,42 +91,43 @@ export function AssessmentsTab({ query, setState, state, topic }: AssessmentsTab
       />
 
       <section className="rounded-lg border border-slate-200 bg-white p-5">
-        <div className="mb-4">
-          <h3 className="text-base font-semibold">Format Penilaian Individu dan Praktik</h3>
-          <p className="text-sm text-slate-500">Data ini dipakai untuk membuat format penilaian siswa seperti lampiran PDF.</p>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <TextArea
-            label="Tujuan Rubrik Individu"
-            onChange={(individualRubricObjective) => updateModuleAssessments({ individualRubricObjective })}
-            value={moduleAssessments.individualRubricObjective}
-          />
-          <TextArea
-            label="Waktu Pelaksanaan Rubrik Individu"
-            onChange={(individualRubricTiming) => updateModuleAssessments({ individualRubricTiming })}
-            value={moduleAssessments.individualRubricTiming}
-          />
-          <div className="md:col-span-2">
-            <TextArea
-              label="Skala Nilai Rubrik Individu"
-              onChange={(individualScoreScale) => updateModuleAssessments({ individualScoreScale })}
-              value={moduleAssessments.individualScoreScale}
-            />
+        <BankSection isComplete={individualFormatComplete} title="Format Penilaian Individu dan Praktik">
+          <div className="mb-4 flex justify-end">
+            <AutoSavedNotice />
           </div>
-          <TextArea label="Tugas Praktik" onChange={(practiceTask) => updateModuleAssessments({ practiceTask })} value={moduleAssessments.practiceTask} />
-          <NumberField
-            label="Total Skor Praktik"
-            onChange={(practiceTotalScore) => updateModuleAssessments({ practiceTotalScore })}
-            value={moduleAssessments.practiceTotalScore}
-          />
-          <div className="md:col-span-2">
+          <div className="grid gap-6 md:grid-cols-2">
             <TextArea
-              label="Kriteria Penilaian Praktik"
-              onChange={(practiceCriteria) => updateModuleAssessments({ practiceCriteria })}
-              value={moduleAssessments.practiceCriteria}
+              label="Tujuan Rubrik Individu"
+              onChange={(individualRubricObjective) => updateModuleAssessments({ individualRubricObjective })}
+              value={moduleAssessments.individualRubricObjective}
             />
+            <TextArea
+              label="Waktu Pelaksanaan Rubrik Individu"
+              onChange={(individualRubricTiming) => updateModuleAssessments({ individualRubricTiming })}
+              value={moduleAssessments.individualRubricTiming}
+            />
+            <div className="md:col-span-2">
+              <TextArea
+                label="Skala Nilai Rubrik Individu"
+                onChange={(individualScoreScale) => updateModuleAssessments({ individualScoreScale })}
+                value={moduleAssessments.individualScoreScale}
+              />
+            </div>
+            <TextArea label="Tugas Praktik" onChange={(practiceTask) => updateModuleAssessments({ practiceTask })} value={moduleAssessments.practiceTask} />
+            <NumberField
+              label="Total Skor Praktik"
+              onChange={(practiceTotalScore) => updateModuleAssessments({ practiceTotalScore })}
+              value={moduleAssessments.practiceTotalScore}
+            />
+            <div className="md:col-span-2">
+              <TextArea
+                label="Kriteria Penilaian Praktik"
+                onChange={(practiceCriteria) => updateModuleAssessments({ practiceCriteria })}
+                value={moduleAssessments.practiceCriteria}
+              />
+            </div>
           </div>
-        </div>
+        </BankSection>
       </section>
 
       <div className="grid gap-5 xl:grid-cols-3">
@@ -187,10 +204,10 @@ function RubricEditor({
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-[900px] w-full border-collapse text-left text-sm">
+        <table className="w-full min-w-[720px] table-fixed border-collapse text-left text-sm">
           <thead>
             <tr className="bg-slate-50 text-xs uppercase text-slate-500">
-              <th className="border border-slate-200 p-3">Aspek</th>
+              <th className="w-[18%] border border-slate-200 p-3">Aspek</th>
               <th className="border border-slate-200 p-3">Baik Sekali</th>
               <th className="border border-slate-200 p-3">Baik</th>
               <th className="border border-slate-200 p-3">Cukup</th>
@@ -201,11 +218,11 @@ function RubricEditor({
           <tbody>
             {rows.map((row) => (
               <tr key={row.id}>
-                <td className="border border-slate-200 p-3 font-medium">{row.aspect}</td>
-                <td className="border border-slate-200 p-3 text-slate-600">{row.excellent}</td>
-                <td className="border border-slate-200 p-3 text-slate-600">{row.good}</td>
-                <td className="border border-slate-200 p-3 text-slate-600">{row.fair}</td>
-                <td className="border border-slate-200 p-3 text-slate-600">{row.needsImprovement}</td>
+                <td className="break-words border border-slate-200 p-3 font-medium">{row.aspect}</td>
+                <td className="break-words border border-slate-200 p-3 text-slate-600">{row.excellent}</td>
+                <td className="break-words border border-slate-200 p-3 text-slate-600">{row.good}</td>
+                <td className="break-words border border-slate-200 p-3 text-slate-600">{row.fair}</td>
+                <td className="break-words border border-slate-200 p-3 text-slate-600">{row.needsImprovement}</td>
                 <td className="border border-slate-200 p-3">
                   <div className="flex gap-2">
                     <button
@@ -398,7 +415,7 @@ function LegacyAssessments({ query, setState, state, topic }: AssessmentsTabProp
           onSave={save}
         >
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Jenis Asesmen</label>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Jenis Asesmen</label>
             <select className="input" onChange={(event) => setDraft((current) => ({ ...current, type: event.target.value as AssessmentType }))} value={draft.type}>
               <option>Diagnostik</option>
               <option>Formatif</option>

@@ -28,6 +28,7 @@ export function TemplateActions({
   state: AppState
 }) {
   const [sourceTopicId, setSourceTopicId] = useState('')
+  const [isOpen, setIsOpen] = useState(false)
   const sourceOptions = state.topics.filter((topic) => topic.teacherId === selectedTopic.teacherId && topic.id !== selectedTopic.id)
 
   function applyQuickTemplate() {
@@ -42,44 +43,45 @@ export function TemplateActions({
   }
 
   return (
-    <section className="rounded-lg border border-blue-100 bg-blue-50 p-4">
-      <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
-        <div>
-          <div className="mb-3 flex items-center gap-2 text-blue-800">
-            <Wand2 size={18} />
-            <h3 className="text-sm font-semibold">Template Cepat PJOK</h3>
-          </div>
-          <p className="text-sm leading-6 text-slate-600">
-            Mengisi bagian kosong dengan template aktivitas, rubrik, LKPD, dan lampiran PJOK tanpa menimpa data yang sudah ada.
-          </p>
-          <button className="btn-primary mt-3" onClick={applyQuickTemplate} type="button">
-            <Wand2 size={16} />
-            Terapkan Template PJOK
-          </button>
-        </div>
-
-        <div>
-          <div className="mb-3 flex items-center gap-2 text-blue-800">
-            <Copy size={18} />
-            <h3 className="text-sm font-semibold">Duplikasi Modul Ajar</h3>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-            <select className="input" onChange={(event) => setSourceTopicId(event.target.value)} value={sourceTopicId}>
-              <option value="">Pilih sumber topik</option>
-              {sourceOptions.map((topic) => (
-                <option key={topic.id} value={topic.id}>
-                  Kelas {topic.classGrade} - {topic.title}
-                </option>
-              ))}
-            </select>
-            <button className="btn-secondary" disabled={!sourceTopicId} onClick={duplicateFromTopic} type="button">
-              <Copy size={16} />
-              Duplikasi
+    <section className="rounded-md border border-blue-100 bg-blue-50">
+      <button className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm font-semibold text-blue-800" onClick={() => setIsOpen((current) => !current)} type="button">
+        <span className="flex items-center gap-2">
+          <Wand2 size={14} />
+          Template & Duplikasi
+        </span>
+        <span className="text-xs font-medium text-blue-600">{isOpen ? 'Tutup' : 'Buka'}</span>
+      </button>
+      {isOpen && (
+        <div className="grid gap-3 border-t border-blue-100 p-3">
+          <div>
+            <p className="mb-1.5 text-[11px] text-slate-600">Isi bagian kosong tanpa menimpa data.</p>
+            <button className="btn-primary h-9 w-full justify-center px-3 text-sm" onClick={applyQuickTemplate} type="button">
+              <Wand2 size={14} />
+              Terapkan Template
             </button>
           </div>
-          <p className="mt-2 text-xs leading-5 text-slate-500">Data sumber tidak berubah. Data tujuan akan diganti dengan salinan baru.</p>
+
+          <div>
+            <label className="mb-2 block text-[11px] font-semibold uppercase tracking-wide text-slate-500" htmlFor="duplicate-topic-source">
+              Duplikasi dari topik lain
+            </label>
+            <div className="grid gap-2">
+              <select className="input h-9 text-sm" id="duplicate-topic-source" onChange={(event) => setSourceTopicId(event.target.value)} value={sourceTopicId}>
+                <option value="">Pilih sumber topik</option>
+                {sourceOptions.map((topic) => (
+                  <option key={topic.id} value={topic.id}>
+                    Kelas {topic.classGrade} - {topic.title}
+                  </option>
+                ))}
+              </select>
+              <button className="btn-secondary h-9 w-full justify-center px-3 text-sm" disabled={!sourceTopicId} onClick={duplicateFromTopic} title="Data tujuan akan diganti dengan salinan baru." type="button">
+                <Copy size={14} />
+                Duplikasi
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </section>
   )
 }

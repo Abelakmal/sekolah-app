@@ -7,6 +7,7 @@ import { createId, maxAttachmentBytes, readAttachment } from '../../../core/util
 import { TextArea, TextField } from '../../../shared/components/FormControls'
 import { FormPanel } from '../../../shared/components/FormPanel'
 import { confirmDelete } from '../../../shared/utils/confirmDelete'
+import { AutoSavedNotice, BankSection } from './BankSection'
 
 type AppendicesTabProps = {
   query: string
@@ -17,6 +18,7 @@ type AppendicesTabProps = {
 
 export function AppendicesTab({ query, setState, state, topic }: AppendicesTabProps) {
   const appendices = getModuleAppendices(state, topic)
+  const mainAppendicesComplete = Boolean(appendices.readingMaterials && appendices.learningMedia && appendices.assessmentInstruments)
 
   function updateAppendices(patch: Partial<ModuleAppendices>) {
     setState((current) => ({
@@ -34,7 +36,8 @@ export function AppendicesTab({ query, setState, state, topic }: AppendicesTabPr
   return (
     <div className="grid gap-5">
       <section className="rounded-lg border border-slate-200 bg-white p-5">
-        <div className="mb-4 flex items-center gap-3">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-center gap-3">
           <div className="grid size-10 place-items-center rounded-md bg-cyan-50 text-cyan-700">
             <Paperclip size={19} />
           </div>
@@ -42,16 +45,20 @@ export function AppendicesTab({ query, setState, state, topic }: AppendicesTabPr
             <h3 className="text-base font-semibold">Lampiran Modul</h3>
             <p className="text-sm text-slate-500">Isi bahan bacaan, media pembelajaran, dan instrumen penilaian.</p>
           </div>
+          </div>
+          <AutoSavedNotice />
         </div>
-        <div className="grid gap-4 lg:grid-cols-3">
-          <TextArea label="Bahan Bacaan" onChange={(readingMaterials) => updateAppendices({ readingMaterials })} value={appendices.readingMaterials} />
-          <TextArea label="Media Pembelajaran" onChange={(learningMedia) => updateAppendices({ learningMedia })} value={appendices.learningMedia} />
-          <TextArea
-            label="Instrumen Penilaian"
-            onChange={(assessmentInstruments) => updateAppendices({ assessmentInstruments })}
-            value={appendices.assessmentInstruments}
-          />
-        </div>
+        <BankSection defaultOpen isComplete={mainAppendicesComplete} title="Bahan, Media, dan Instrumen">
+          <div className="grid gap-6 lg:grid-cols-3">
+            <TextArea label="Bahan Bacaan" onChange={(readingMaterials) => updateAppendices({ readingMaterials })} value={appendices.readingMaterials} />
+            <TextArea label="Media Pembelajaran" onChange={(learningMedia) => updateAppendices({ learningMedia })} value={appendices.learningMedia} />
+            <TextArea
+              label="Instrumen Penilaian"
+              onChange={(assessmentInstruments) => updateAppendices({ assessmentInstruments })}
+              value={appendices.assessmentInstruments}
+            />
+          </div>
+        </BankSection>
       </section>
 
       <ReadingSectionEditor
@@ -330,7 +337,7 @@ function AppendixFileEditor({
           <TextField label="Judul" onChange={(title) => setDraft((current) => ({ ...current, title }))} value={draft.title} />
           <TextArea label="Deskripsi" onChange={(description) => setDraft((current) => ({ ...current, description }))} value={draft.description} />
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">File</label>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">File</label>
             <input className="input" onChange={(event) => void handleFile(event.target.files?.[0])} type="file" />
             {draft.attachment && (
               <p className="mt-1 text-xs text-slate-500">

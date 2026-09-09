@@ -26,7 +26,7 @@ export function FormPanel({
           </button>
         </div>
       </div>
-      <div className="grid gap-3">{children}</div>
+      <div className="grid gap-5">{children}</div>
     </div>
   )
 }

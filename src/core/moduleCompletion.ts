@@ -1,5 +1,5 @@
 import { getModuleActivities, isModuleActivitiesComplete } from './moduleActivities'
-import { getModuleAppendices, isModuleAppendicesComplete } from './moduleAppendices'
+import { getModuleAppendices } from './moduleAppendices'
 import { getModuleAssessments } from './moduleAssessments'
 import { getModuleWorksheets, isModuleWorksheetsComplete } from './moduleWorksheets'
 import type { AdministrationDraft, AppState, LearningTopic } from './types'
@@ -18,8 +18,6 @@ export function getModuleCompletion(state: AppState, topic: LearningTopic, draft
   const worksheets = getModuleWorksheets(state, topic)
   const appendices = getModuleAppendices(state, topic)
   const objectiveCount = draft?.objectiveIds.length ?? state.objectives.filter((item) => item.topicId === topic.id).length
-  const materialCount = draft?.materialIds.length ?? state.materials.filter((item) => item.topicId === topic.id).length
-  const students = state.students.filter((student) => student.teacherId === topic.teacherId && student.classGrade === topic.classGrade)
 
   const sections: ModuleCompletionSection[] = [
     {
@@ -66,13 +64,8 @@ export function getModuleCompletion(state: AppState, topic: LearningTopic, draft
       complete: false,
     },
     {
-      label: 'Materi & Media',
-      missing: missing([['Materi pembelajaran terpilih/tersedia', materialCount > 0]]),
-      complete: false,
-    },
-    {
       label: 'Aktivitas Pembelajaran',
-      missing: isModuleActivitiesComplete(activities) ? [] : ['Pendahuluan, inti, penutup, dan diferensiasi belum lengkap'],
+      missing: isModuleActivitiesComplete(activities) ? [] : ['Pendahuluan, inti, dan penutup belum lengkap'],
       complete: false,
     },
     {
@@ -81,18 +74,19 @@ export function getModuleCompletion(state: AppState, topic: LearningTopic, draft
         ['Asesmen diagnostik', assessments.diagnosticAssessment],
         ['Asesmen formatif', assessments.formativeAssessment],
         ['Asesmen sumatif', assessments.summativeAssessment],
+        ['Konteks rubrik kelompok', assessments.groupRubricContext],
+        ['Catatan guru', assessments.teacherNotes],
         ['Tujuan rubrik individu', assessments.individualRubricObjective],
         ['Waktu rubrik individu', assessments.individualRubricTiming],
         ['Skala nilai individu', assessments.individualScoreScale],
+        ['Tujuan penilaian praktik', assessments.practiceObjective],
+        ['Waktu penilaian praktik', assessments.practiceTiming],
         ['Tugas praktik', assessments.practiceTask],
         ['Total skor praktik', assessments.practiceTotalScore > 0],
         ['Kriteria praktik', assessments.practiceCriteria],
+        ['Refleksi diri siswa', assessments.studentSelfReflection],
         ['Rubrik kelompok', assessments.groupRubric.length > 0],
         ['Rubrik individu', assessments.individualRubric.length > 0],
-        ['Penilaian sikap', assessments.attitudeScores.length > 0],
-        ['Penilaian pengetahuan', assessments.knowledgeScores.length > 0],
-        ['Penilaian praktik', assessments.practiceScores.length > 0],
-        ['Data peserta didik', students.length > 0],
       ]),
       complete: false,
     },
@@ -103,7 +97,15 @@ export function getModuleCompletion(state: AppState, topic: LearningTopic, draft
     },
     {
       label: 'Lampiran',
-      missing: isModuleAppendicesComplete(appendices) ? [] : ['Bahan bacaan, media, instrumen penilaian, dan glosarium belum lengkap'],
+      missing: missing([
+        ['Bahan bacaan', appendices.readingMaterials || appendices.readingSections.length > 0],
+        ['Media pembelajaran', appendices.learningMedia],
+        ['Instrumen penilaian', appendices.assessmentInstruments],
+        ['Glosarium', appendices.glossary.length > 0],
+        ['Format penilaian sikap', assessments.attitudeScores.length > 0],
+        ['Format penilaian pengetahuan', assessments.knowledgeScores.length > 0],
+        ['Format penilaian praktik', assessments.practiceScores.length > 0],
+      ]),
       complete: false,
     },
   ]

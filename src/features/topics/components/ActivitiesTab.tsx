@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import type { Dispatch, ReactNode, SetStateAction } from 'react'
 import { ArrowDown, ArrowUp, Clock3, FileText, ImagePlus, ListChecks, Plus, Quote, Trash2, Video } from 'lucide-react'
-import { getModuleActivities } from '../../../core/moduleActivities'
-import type { AppState, LearningActivity, LearningActivityPhase, LearningTopic, ModuleLearningActivities } from '../../../core/types'
-import { createId } from '../../../core/utils'
+import { getModuleActivities, mergeLegacyDifferentiationIntoCore } from '../../../core/moduleActivities'
+import type { ActivityBlock, ActivityBlockType, AppState, LearningActivity, LearningActivityPhase, LearningTopic, ModuleLearningActivities } from '../../../core/types'
+import { createId, maxAttachmentBytes, readAttachment } from '../../../core/utils'
 import { NumberField, TextArea, TextField } from '../../../shared/components/FormControls'
 import { FormPanel } from '../../../shared/components/FormPanel'
+import { RichTextEditor } from '../../../shared/components/RichTextEditor'
 import { AutoSavedNotice, BankSection } from './BankSection'
 import { CrudSection } from './CrudSection'
 
@@ -18,17 +19,6 @@ type ActivitiesTabProps = {
 
 type PhaseKey = 'opening' | 'core' | 'closing'
 
-type ActivityBlockType = 'text' | 'heading' | 'callout' | 'image' | 'video'
-
-type ActivityBlock = {
-  id: string
-  type: ActivityBlockType
-  content: string
-  imageName?: string
-  imageUrl?: string
-  videoUrl?: string
-}
-
 type ActivityPhaseDraft = LearningActivityPhase & {
   blocks: ActivityBlock[]
 }
@@ -39,21 +29,35 @@ const phaseLabels: Record<PhaseKey, string> = {
   closing: 'Penutup',
 }
 
-export function ActivitiesTab({ query, setState, state, topic }: ActivitiesTabProps) {
+export function ActivitiesTab({ setState, state, topic }: ActivitiesTabProps) {
   const moduleActivities = getModuleActivities(state, topic)
-  const [editorPhases, setEditorPhases] = useState(() => createEditorPhases(moduleActivities))
-  const differentiationComplete = Boolean(
-    moduleActivities.contentDifferentiation && moduleActivities.processDifferentiation && moduleActivities.environmentDifferentiation,
-  )
+  const [_editorPhases, setEditorPhases] = useState(() => createEditorPhases(moduleActivities))
   const reflectionComplete = Boolean(moduleActivities.teacherReflection && moduleActivities.studentReflection)
 
-  // Editor blok masih berupa draft di memori. Saat penyimpanan permanen ditambahkan,
-  // state ini akan dipindahkan ke model data modul.
   useEffect(() => {
     setEditorPhases(createEditorPhases(moduleActivities))
     // Hanya ganti draft ketika pengguna membuka topik lain.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topic.id])
+
+  useEffect(() => {
+    if (!moduleActivities.contentDifferentiation && !moduleActivities.processDifferentiation && !moduleActivities.environmentDifferentiation) return
+
+    const coreSteps = mergeLegacyDifferentiationIntoCore(moduleActivities)
+    setState((current) => ({
+      ...current,
+      moduleActivities: {
+        ...current.moduleActivities,
+        [topic.id]: {
+          ...moduleActivities,
+          core: { ...moduleActivities.core, steps: coreSteps, blocks: undefined },
+          contentDifferentiation: '',
+          processDifferentiation: '',
+          environmentDifferentiation: '',
+        },
+      },
+    }))
+  }, [moduleActivities, setState, topic.id])
 
   function updateModuleActivities(patch: Partial<ModuleLearningActivities>) {
     setState((current) => ({
@@ -66,6 +70,22 @@ export function ActivitiesTab({ query, setState, state, topic }: ActivitiesTabPr
         },
       },
     }))
+  }
+
+  function _updatePhase(phase: PhaseKey, nextPhase: ActivityPhaseDraft) {
+    setEditorPhases((current) => ({ ...current, [phase]: nextPhase }))
+    updateModuleActivities({
+      [phase]: {
+        title: nextPhase.title,
+        durationMinutes: nextPhase.durationMinutes,
+        steps: blocksToPlainText(nextPhase.blocks),
+        blocks: nextPhase.blocks,
+      },
+    })
+  }
+
+  function updateRichPhase(phase: PhaseKey, patch: Partial<LearningActivityPhase>) {
+    updateModuleActivities({ [phase]: { ...moduleActivities[phase], ...patch } })
   }
 
   return (
@@ -81,43 +101,18 @@ export function ActivitiesTab({ query, setState, state, topic }: ActivitiesTabPr
             <p className="text-sm text-slate-500">Susun alur kegiatan seperti format Modul Ajar: pendahuluan, inti, penutup.</p>
           </div>
           </div>
-          <span className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">Draft sesi ini · belum disimpan</span>
+          <AutoSavedNotice />
         </div>
         <div className="grid gap-3">
           {(Object.keys(phaseLabels) as PhaseKey[]).map((phase) => (
-            <ActivityBlockEditor
+            <RichActivityPhaseEditor
               key={phase}
               label={phaseLabels[phase]}
-              onChange={(nextPhase) => setEditorPhases((current) => ({ ...current, [phase]: nextPhase }))}
-              value={editorPhases[phase]}
+              onChange={(patch) => updateRichPhase(phase, patch)}
+              value={moduleActivities[phase]}
             />
           ))}
         </div>
-      </section>
-
-      <section className="rounded-lg border border-slate-200 bg-white p-5">
-        <BankSection defaultOpen isComplete={differentiationComplete} title="Diferensiasi Pembelajaran">
-          <div className="mb-4 flex justify-end">
-            <AutoSavedNotice />
-          </div>
-          <div className="grid gap-6 lg:grid-cols-3">
-            <TextArea
-              label="Diferensiasi Konten"
-              onChange={(contentDifferentiation) => updateModuleActivities({ contentDifferentiation })}
-              value={moduleActivities.contentDifferentiation}
-            />
-            <TextArea
-              label="Diferensiasi Proses"
-              onChange={(processDifferentiation) => updateModuleActivities({ processDifferentiation })}
-              value={moduleActivities.processDifferentiation}
-            />
-            <TextArea
-              label="Diferensiasi Lingkungan"
-              onChange={(environmentDifferentiation) => updateModuleActivities({ environmentDifferentiation })}
-              value={moduleActivities.environmentDifferentiation}
-            />
-          </div>
-        </BankSection>
       </section>
 
       <section className="rounded-lg border border-slate-200 bg-white p-5">
@@ -140,12 +135,33 @@ export function ActivitiesTab({ query, setState, state, topic }: ActivitiesTabPr
         </BankSection>
       </section>
 
-      <AdditionalActivities query={query} setState={setState} state={state} topic={topic} />
     </div>
   )
 }
 
-function ActivityBlockEditor({
+function RichActivityPhaseEditor({
+  label,
+  onChange,
+  value,
+}: {
+  label: string
+  onChange: (patch: Partial<LearningActivityPhase>) => void
+  value: LearningActivityPhase
+}) {
+  return (
+    <BankSection defaultOpen isComplete={Boolean(value.steps && value.durationMinutes > 0)} title={label}>
+      <div className="grid gap-6 md:grid-cols-[1fr_160px]">
+        <TextField label="Judul Bagian" onChange={(title) => onChange({ title })} value={value.title} />
+        <NumberField label="Durasi (menit)" onChange={(durationMinutes) => onChange({ durationMinutes })} value={value.durationMinutes} />
+      </div>
+      <div className="mt-5">
+        <RichTextEditor label={`Isi kegiatan ${label}`} onChange={(steps) => onChange({ steps, blocks: undefined })} value={value.steps} />
+      </div>
+    </BankSection>
+  )
+}
+
+function _ActivityBlockEditor({
   label,
   onChange,
   value,
@@ -181,7 +197,6 @@ function ActivityBlockEditor({
   }
 
   function removeBlock(block: ActivityBlock) {
-    if (block.imageUrl?.startsWith('blob:')) URL.revokeObjectURL(block.imageUrl)
     onChange({ ...value, blocks: value.blocks.filter((item) => item.id !== block.id) })
   }
 
@@ -248,10 +263,12 @@ function ActivityBlockCard({
   const isVideo = block.type === 'video'
   const validatedVideoUrl = getYouTubeUrl(block.videoUrl)
 
-  function selectImage(file?: File) {
+  async function selectImage(file?: File) {
     if (!file) return
-    if (block.imageUrl?.startsWith('blob:')) URL.revokeObjectURL(block.imageUrl)
-    onChange({ imageName: file.name, imageUrl: URL.createObjectURL(file) })
+    if (!file.type.startsWith('image/')) return
+    if (file.size > maxAttachmentBytes) return
+    const attachment = await readAttachment(file)
+    onChange({ imageName: attachment.name, imageUrl: attachment.dataUrl })
   }
 
   return (
@@ -269,7 +286,7 @@ function ActivityBlockCard({
         <div className="grid gap-3">
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-slate-700">Pilih gambar</span>
-            <input accept="image/*" className="input" onChange={(event) => selectImage(event.target.files?.[0])} type="file" />
+            <input accept="image/*" className="input" onChange={(event) => void selectImage(event.target.files?.[0])} type="file" />
           </label>
           {block.imageUrl && <img alt={block.content || block.imageName || 'Gambar kegiatan pembelajaran'} className="max-h-64 w-full rounded-md border border-slate-200 object-contain bg-white" src={block.imageUrl} />}
           <TextField label="Caption gambar (opsional)" onChange={(content) => onChange({ content })} value={block.content} />
@@ -302,11 +319,24 @@ function createEditorPhases(activities: ModuleLearningActivities): Record<PhaseK
         phase,
         {
           ...value,
-          blocks: value.steps ? [{ id: createId('activity-block'), type: 'text', content: value.steps }] : [],
+          blocks: value.blocks?.length ? value.blocks : value.steps ? [{ id: createId('activity-block'), type: 'text', content: value.steps }] : [],
         },
       ]
     }),
   ) as Record<PhaseKey, ActivityPhaseDraft>
+}
+
+function blocksToPlainText(blocks: ActivityBlock[]) {
+  return blocks
+    .map((block) => {
+      if (block.type === 'heading') return block.content
+      if (block.type === 'callout') return `Sintaks Diferensiasi: ${block.content}`
+      if (block.type === 'image') return block.content ? `Gambar: ${block.content}` : ''
+      if (block.type === 'video') return [block.content, block.videoUrl].filter(Boolean).join('\n')
+      return block.content
+    })
+    .filter(Boolean)
+    .join('\n\n')
 }
 
 function getYouTubeUrl(value?: string) {

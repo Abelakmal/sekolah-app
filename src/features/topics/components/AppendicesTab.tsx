@@ -2,12 +2,14 @@ import { useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { FileUp, Paperclip } from 'lucide-react'
 import { getModuleAppendices } from '../../../core/moduleAppendices'
-import type { AppState, AppendixFile, GlossaryTerm, LearningTopic, MaterialAttachment, ModuleAppendices, ReadingSection } from '../../../core/types'
+import { getModuleAssessments } from '../../../core/moduleAssessments'
+import type { AppState, AppendixFile, GlossaryTerm, LearningTopic, MaterialAttachment, ModuleAppendices, ModuleAssessments, ReadingSection } from '../../../core/types'
 import { createId, maxAttachmentBytes, readAttachment } from '../../../core/utils'
 import { TextArea, TextField } from '../../../shared/components/FormControls'
 import { FormPanel } from '../../../shared/components/FormPanel'
 import { confirmDelete } from '../../../shared/utils/confirmDelete'
 import { AutoSavedNotice, BankSection } from './BankSection'
+import { AssessmentScoreEditor } from './AssessmentScoreEditor'
 
 type AppendicesTabProps = {
   query: string
@@ -18,6 +20,7 @@ type AppendicesTabProps = {
 
 export function AppendicesTab({ query, setState, state, topic }: AppendicesTabProps) {
   const appendices = getModuleAppendices(state, topic)
+  const moduleAssessments = getModuleAssessments(state, topic)
   const mainAppendicesComplete = Boolean(appendices.readingMaterials && appendices.learningMedia && appendices.assessmentInstruments)
 
   function updateAppendices(patch: Partial<ModuleAppendices>) {
@@ -29,6 +32,16 @@ export function AppendicesTab({ query, setState, state, topic }: AppendicesTabPr
           ...appendices,
           ...patch,
         },
+      },
+    }))
+  }
+
+  function updateModuleAssessments(patch: Partial<ModuleAssessments>) {
+    setState((current) => ({
+      ...current,
+      moduleAssessments: {
+        ...current.moduleAssessments,
+        [topic.id]: { ...moduleAssessments, ...patch },
       },
     }))
   }
@@ -57,6 +70,17 @@ export function AppendicesTab({ query, setState, state, topic }: AppendicesTabPr
               onChange={(assessmentInstruments) => updateAppendices({ assessmentInstruments })}
               value={appendices.assessmentInstruments}
             />
+          </div>
+        </BankSection>
+      </section>
+
+      <section className="rounded-lg border border-slate-200 bg-white p-5">
+        <BankSection defaultOpen title="Lampiran 4 — Instrumen Penilaian">
+          <p className="mb-5 text-sm leading-6 text-slate-500">Format ini diekspor ke Lampiran 4, bukan ke bagian asesmen utama.</p>
+          <div className="grid gap-5 xl:grid-cols-3">
+            <AssessmentScoreEditor onChange={(attitudeScores) => updateModuleAssessments({ attitudeScores })} rows={moduleAssessments.attitudeScores} title="Format Penilaian Sikap" />
+            <AssessmentScoreEditor onChange={(knowledgeScores) => updateModuleAssessments({ knowledgeScores })} rows={moduleAssessments.knowledgeScores} title="Format Penilaian Pengetahuan" />
+            <AssessmentScoreEditor onChange={(practiceScores) => updateModuleAssessments({ practiceScores })} rows={moduleAssessments.practiceScores} title="Format Penilaian Praktik" />
           </div>
         </BankSection>
       </section>

@@ -256,16 +256,46 @@ function getTemplateActivities(topic: LearningTopic): ModuleLearningActivities {
     core: {
       title: 'Inti',
       durationMinutes: 50,
-      steps: `Guru menjelaskan konsep ${topic.title}, memberi contoh gerak, membagi kelompok, memandu latihan bertahap, melakukan permainan sederhana, dan memberi umpan balik.`,
+      steps: `<h3>Eksplorasi konsep dan demonstrasi</h3>
+<ul>
+  <li>Guru menjelaskan konsep dasar ${topic.title}, tujuan latihan, aturan keselamatan, dan contoh penerapannya dalam aktivitas PJOK.</li>
+  <li>Peserta didik mengamati demonstrasi gerak melalui contoh langsung, gambar, atau video pembelajaran.</li>
+  <li>Guru mengajukan pertanyaan untuk menggali pemahaman awal peserta didik.</li>
+</ul>
+<h3>Diferensiasi Konten</h3>
+<ul>
+  <li>Materi disajikan melalui penjelasan lisan, contoh visual, dan demonstrasi gerak secara bertahap.</li>
+  <li>Peserta didik dapat mengamati gambar atau video sebelum mencoba gerakan.</li>
+</ul>
+<h3>Latihan dan praktik</h3>
+<ul>
+  <li>Peserta didik berlatih secara individu untuk mengenali urutan gerak.</li>
+  <li>Peserta didik berlatih berpasangan atau dalam kelompok kecil dengan pengawasan guru.</li>
+  <li>Guru mengamati proses, memberi umpan balik langsung, dan mengingatkan teknik yang aman.</li>
+</ul>
+<h3>Diferensiasi Proses</h3>
+<ul>
+  <li>Peserta didik yang membutuhkan bantuan mendapat contoh ulang, tempo latihan lebih lambat, dan bimbingan tambahan.</li>
+  <li>Peserta didik yang sudah siap mendapat variasi tantangan sesuai kemampuannya.</li>
+</ul>
+<h3>Penerapan dalam permainan sederhana</h3>
+<ul>
+  <li>Peserta didik menerapkan keterampilan ${topic.title} dalam permainan atau tantangan kelompok sederhana.</li>
+  <li>Peserta didik menunjukkan kerja sama, disiplin, dan sportivitas selama kegiatan.</li>
+</ul>
+<h3>Diferensiasi Lingkungan Belajar</h3>
+<ul>
+  <li>Area latihan dibagi menjadi beberapa pos aman dengan jarak, alat, dan pasangan latihan yang disesuaikan.</li>
+</ul>`,
     },
     closing: {
       title: 'Penutup',
       durationMinutes: 10,
       steps: 'Guru memandu pendinginan, refleksi, penguatan materi, penilaian singkat, dan menyampaikan tindak lanjut latihan.',
     },
-    contentDifferentiation: 'Materi disajikan lewat contoh visual, penjelasan lisan, dan demonstrasi gerak.',
-    processDifferentiation: 'Peserta didik berlatih individu, berpasangan, dan kelompok kecil sesuai kesiapan.',
-    environmentDifferentiation: 'Area latihan dibagi menjadi pos aman dengan jarak dan alat yang disesuaikan.',
+    contentDifferentiation: '',
+    processDifferentiation: '',
+    environmentDifferentiation: '',
     teacherReflection: 'Apakah kegiatan, instruksi, dan diferensiasi sudah membantu peserta didik mencapai tujuan pembelajaran?',
     studentReflection: 'Apa gerakan yang sudah bisa dilakukan dan apa yang masih perlu dilatih?',
   }
@@ -276,12 +306,17 @@ function getTemplateAssessments(): ModuleAssessments {
     diagnosticAssessment: 'Pertanyaan awal tentang kondisi peserta didik, kesiapan belajar, dan pengalaman gerak sebelumnya.',
     formativeAssessment: 'Observasi proses latihan, kedisiplinan, kerja sama, dan kemampuan mengikuti instruksi.',
     summativeAssessment: 'Praktik keterampilan gerak sesuai topik dan refleksi hasil belajar peserta didik.',
+    groupRubricContext: 'Kelompok mendiskusikan langkah gerak, alasan teknik yang tepat, dan cara menjaga keselamatan saat praktik.',
+    teacherNotes: '<ul><li>Berikan umpan balik langsung pada bagian yang perlu diperbaiki.</li><li>Berikan pujian pada kemajuan dan kerja sama peserta didik.</li></ul>',
     individualRubricObjective: 'Menilai pemahaman dan keterampilan individu setelah pembelajaran.',
     individualRubricTiming: 'Dilaksanakan setelah penjelasan dan latihan inti.',
     individualScoreScale: 'Sangat mahir: 100\nMahir: 80\nSudah berkembang: 60\nBerkembang: 40\nPerlu bimbingan: 20',
+    practiceObjective: 'Mengukur keterampilan peserta didik dalam mempraktikkan gerak sesuai topik pembelajaran.',
+    practiceTiming: 'Dilaksanakan pada akhir kegiatan praktik.',
     practiceTask: 'Mempraktikkan gerak sesuai topik pembelajaran dengan teknik yang benar dan aman.',
     practiceTotalScore: 50,
     practiceCriteria: 'Sangat Baik: 45-50\nBaik: 40-44\nCukup: 35-39\nPerlu Perbaikan: <35',
+    studentSelfReflection: 'Peserta didik menulis pengalaman belajar, kesulitan yang dihadapi, cara mengatasinya, dan rencana latihan berikutnya.',
     groupRubric: [
       { id: createId('rubric'), aspect: 'Kerja sama', excellent: 'Aktif membantu dan berkomunikasi jelas.', good: 'Bekerja sama dengan baik.', fair: 'Kerja sama belum konsisten.', needsImprovement: 'Perlu bimbingan dalam kerja sama.' },
       { id: createId('rubric'), aspect: 'Sportivitas', excellent: 'Selalu menghargai teman dan aturan.', good: 'Umumnya mengikuti aturan.', fair: 'Kadang perlu diingatkan.', needsImprovement: 'Sering mengabaikan aturan.' },

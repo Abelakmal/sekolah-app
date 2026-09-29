@@ -4,12 +4,17 @@ export const fallbackModuleAssessments: ModuleAssessments = {
   diagnosticAssessment: '',
   formativeAssessment: '',
   summativeAssessment: '',
+  groupRubricContext: '',
+  teacherNotes: '',
   individualRubricObjective: '',
   individualRubricTiming: '',
   individualScoreScale: '',
+  practiceObjective: '',
+  practiceTiming: '',
   practiceTask: '',
   practiceTotalScore: 0,
   practiceCriteria: '',
+  studentSelfReflection: '',
   groupRubric: [],
   individualRubric: [],
   attitudeScores: [],
@@ -31,19 +36,21 @@ export function getModuleAssessments(state: AppState, topic: LearningTopic): Mod
 
 export function isModuleAssessmentsComplete(assessments: ModuleAssessments) {
   return Boolean(
-    assessments.diagnosticAssessment &&
+      assessments.diagnosticAssessment &&
       assessments.formativeAssessment &&
       assessments.summativeAssessment &&
+      assessments.groupRubricContext &&
+      assessments.teacherNotes &&
       assessments.individualRubricObjective &&
       assessments.individualRubricTiming &&
       assessments.individualScoreScale &&
+      assessments.practiceObjective &&
+      assessments.practiceTiming &&
       assessments.practiceTask &&
       assessments.practiceTotalScore > 0 &&
       assessments.practiceCriteria &&
+      assessments.studentSelfReflection &&
       assessments.groupRubric.length > 0 &&
-      assessments.individualRubric.length > 0 &&
-      assessments.attitudeScores.length > 0 &&
-      assessments.knowledgeScores.length > 0 &&
-      assessments.practiceScores.length > 0,
+      assessments.individualRubric.length > 0,
   )
 }

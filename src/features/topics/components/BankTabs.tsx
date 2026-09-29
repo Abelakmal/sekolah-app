@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  FileText,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import type {
   AppState,
   BankTab,
@@ -40,7 +36,6 @@ import { WorksheetsTab } from "./WorksheetsTab";
 const bankLabels: Record<BankTab, string> = {
   "module-info": "Informasi Modul",
   competencies: "Kompetensi & Tujuan",
-  materials: "Materi & Media",
   activities: "Aktivitas Pembelajaran",
   assessments: "Asesmen & Rubrik",
   worksheets: "LKPD",
@@ -104,21 +99,42 @@ export function TopicDetailPanel({
     <div className="grid gap-4 xl:h-[calc(100vh-116px)] xl:min-h-0 xl:grid-cols-[300px_minmax(0,1fr)] xl:overflow-hidden 2xl:grid-cols-[320px_minmax(0,1fr)]">
       <aside className="grid gap-3 xl:min-h-0 xl:content-start xl:overflow-y-auto">
         <section className="rounded-lg border border-slate-200 bg-white p-3">
-          <button className="btn-secondary h-9 px-3 text-sm" onClick={onBack} type="button">
+          <button
+            className="btn-secondary h-9 px-3 text-sm"
+            onClick={onBack}
+            type="button"
+          >
             Kembali
           </button>
-          <h2 className="mt-3 text-base font-semibold leading-6 text-slate-950">{selectedTopic.title}</h2>
+          <h2 className="mt-3 text-base font-semibold leading-6 text-slate-950">
+            {selectedTopic.title}
+          </h2>
           <div className="mt-3 grid gap-2">
-            <InfoChip label="Kelas" value={`Kelas ${selectedTopic.classGrade}`} />
-            <InfoChip label="Alokasi" value={info.timeAllocation || "Belum diisi"} muted={!info.timeAllocation} />
+            <InfoChip
+              label="Kelas"
+              value={`Kelas ${selectedTopic.classGrade}`}
+            />
+            <InfoChip
+              label="Alokasi"
+              value={info.timeAllocation || "Belum diisi"}
+              muted={!info.timeAllocation}
+            />
           </div>
         </section>
 
         <section className="rounded-lg border border-slate-200 bg-white p-3">
-          <p className="text-[11px] font-semibold uppercase text-slate-500">Step Aktif</p>
-          <h3 className="text-base font-semibold text-slate-900">{bankLabels[activeTab]}</h3>
+          <p className="text-[11px] font-semibold uppercase text-slate-500">
+            Step Aktif
+          </p>
+          <h3 className="text-base font-semibold text-slate-900">
+            {bankLabels[activeTab]}
+          </h3>
           <div className="mt-2">
-            <TemplateActions selectedTopic={selectedTopic} setState={setState} state={state} />
+            <TemplateActions
+              selectedTopic={selectedTopic}
+              setState={setState}
+              state={state}
+            />
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-200 pt-3">
             <button
@@ -147,13 +163,24 @@ export function TopicDetailPanel({
         {isSearchableTab(activeTab) && (
           <div className="rounded-lg border border-slate-200 bg-white p-3 xl:shrink-0">
             <div className="max-w-lg">
-              <SearchField className="input h-9 pl-9 text-sm" onChange={setQuery} placeholder={`Cari ${bankLabels[activeTab].toLowerCase()}...`} value={query} />
+              <SearchField
+                className="input h-9 pl-9 text-sm"
+                onChange={setQuery}
+                placeholder={`Cari ${bankLabels[activeTab].toLowerCase()}...`}
+                value={query}
+              />
             </div>
           </div>
         )}
 
         <div className="min-w-0 min-h-0 xl:overflow-y-auto xl:pr-1">
-          <BankTabContent query={query} setState={setState} state={state} tab={activeTab} topic={selectedTopic} />
+          <BankTabContent
+            query={query}
+            setState={setState}
+            state={state}
+            tab={activeTab}
+            topic={selectedTopic}
+          />
         </div>
       </section>
     </div>
@@ -184,15 +211,6 @@ function BankTabContent({
         topic={topic}
       />
     );
-  if (tab === "materials")
-    return (
-      <MaterialsTab
-        query={query}
-        setState={setState}
-        state={state}
-        topic={topic}
-      />
-    );
   if (tab === "activities")
     return (
       <ActivitiesTab
@@ -205,7 +223,6 @@ function BankTabContent({
   if (tab === "assessments")
     return (
       <AssessmentsTab
-        query={query}
         setState={setState}
         state={state}
         topic={topic}
@@ -264,7 +281,6 @@ function getModuleCompetency(
 function isSearchableTab(tab: BankTab) {
   return (
     tab === "competencies" ||
-    tab === "materials" ||
     tab === "activities" ||
     tab === "assessments" ||
     tab === "worksheets" ||
@@ -283,8 +299,17 @@ function InfoChip({
 }) {
   return (
     <div className="grid min-w-0 gap-0.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs">
-      <span className="truncate font-semibold uppercase text-slate-500">{label}</span>
-      <span className={className("truncate font-semibold", muted ? "text-slate-400" : "text-slate-900")}>{value}</span>
+      <span className="truncate font-semibold uppercase text-slate-500">
+        {label}
+      </span>
+      <span
+        className={className(
+          "truncate font-semibold",
+          muted ? "text-slate-400" : "text-slate-900",
+        )}
+      >
+        {value}
+      </span>
     </div>
   );
 }
@@ -327,12 +352,12 @@ function ModuleInfoTab({
   const info = getModuleInfo(state, topic);
   const identityComplete = Boolean(
     info.academicYear &&
-      info.semester &&
-      info.subject &&
-      info.phase &&
-      info.mainMaterial &&
-      info.timeAllocation &&
-      info.targetStudents,
+    info.semester &&
+    info.subject &&
+    info.phase &&
+    info.mainMaterial &&
+    info.timeAllocation &&
+    info.targetStudents,
   );
   const strategyComplete = Boolean(
     info.learningModel && info.learningMethods && info.differentiationStrategy,
@@ -464,8 +489,8 @@ function ModuleInfoTab({
                 className="input"
                 onChange={(event) =>
                   updateInfo({
-                    learningMode:
-                      event.target.value as ModuleInfo["learningMode"],
+                    learningMode: event.target
+                      .value as ModuleInfo["learningMode"],
                   })
                 }
                 value={info.learningMode}
@@ -566,11 +591,11 @@ function CompetenciesTab({ query, setState, state, topic }: BankTabProps) {
   const competency = getModuleCompetency(state, topic);
   const coreComplete = Boolean(
     competency.initialCompetency &&
-      competency.learningAchievements &&
-      competency.meaningfulUnderstanding &&
-      competency.affectivePreparation &&
-      competency.cognitivePreparation &&
-      competency.psychomotorPreparation,
+    competency.learningAchievements &&
+    competency.meaningfulUnderstanding &&
+    competency.affectivePreparation &&
+    competency.cognitivePreparation &&
+    competency.psychomotorPreparation,
   );
 
   function updateCompetency(patch: Partial<ModuleCompetency>) {

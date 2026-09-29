@@ -108,10 +108,22 @@ export type LearningActivity = {
   durationMinutes: number
 }
 
+export type ActivityBlockType = 'text' | 'heading' | 'callout' | 'image' | 'video'
+
+export type ActivityBlock = {
+  id: string
+  type: ActivityBlockType
+  content: string
+  imageName?: string
+  imageUrl?: string
+  videoUrl?: string
+}
+
 export type LearningActivityPhase = {
   title: string
   steps: string
   durationMinutes: number
+  blocks?: ActivityBlock[]
 }
 
 export type ModuleLearningActivities = {
@@ -151,12 +163,17 @@ export type ModuleAssessments = {
   diagnosticAssessment: string
   formativeAssessment: string
   summativeAssessment: string
+  groupRubricContext: string
+  teacherNotes: string
   individualRubricObjective: string
   individualRubricTiming: string
   individualScoreScale: string
+  practiceObjective: string
+  practiceTiming: string
   practiceTask: string
   practiceTotalScore: number
   practiceCriteria: string
+  studentSelfReflection: string
   groupRubric: RubricRow[]
   individualRubric: RubricRow[]
   attitudeScores: ScoreRow[]
@@ -241,4 +258,4 @@ export type AppState = {
   drafts: AdministrationDraft[]
 }
 
-export type BankTab = 'module-info' | 'competencies' | 'materials' | 'activities' | 'assessments' | 'worksheets' | 'attachments'
+export type BankTab = 'module-info' | 'competencies' | 'activities' | 'assessments' | 'worksheets' | 'attachments'

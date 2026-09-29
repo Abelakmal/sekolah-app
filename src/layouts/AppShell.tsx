@@ -37,7 +37,6 @@ const navItems: Array<{ id: AppView; label: string; icon: typeof BookOpenCheck; 
 const topicStepLabels: Record<BankTab, string> = {
   'module-info': 'Informasi Modul',
   competencies: 'Kompetensi & Tujuan',
-  materials: 'Materi & Media',
   activities: 'Aktivitas Pembelajaran',
   assessments: 'Asesmen & Rubrik',
   worksheets: 'LKPD',
@@ -45,6 +44,15 @@ const topicStepLabels: Record<BankTab, string> = {
 }
 
 const topicSteps = Object.keys(topicStepLabels) as BankTab[]
+
+const completionItemTotals: Record<BankTab, number> = {
+  'module-info': 20,
+  competencies: 10,
+  activities: 1,
+  assessments: 16,
+  worksheets: 1,
+  attachments: 7,
+}
 
 export function AppShell({ activeTopicTab, activeView, children, onLogout, onTopicTabChange, onViewChange, role, selectedTopic, state }: AppShellProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
@@ -192,7 +200,9 @@ function TopicSidebarProgress({
           const section = sectionByTab.get(step)
           const isComplete = Boolean(section?.complete)
           const isActive = activeTopicTab === step
-          const stepProgress = isComplete ? 100 : isActive ? 35 : 8
+          const totalItems = completionItemTotals[step]
+          const completedItems = Math.max(0, totalItems - (section?.missing.length ?? totalItems))
+          const stepProgress = isComplete ? 100 : Math.max(isActive ? 8 : 4, Math.round((completedItems / totalItems) * 100))
 
           return (
             <button
@@ -246,7 +256,6 @@ function ProgressRing({
 function getTopicTabForCompletionLabel(label: string): BankTab {
   if (label === 'Identitas Modul') return 'module-info'
   if (label === 'Kompetensi & Tujuan') return 'competencies'
-  if (label === 'Materi & Media') return 'materials'
   if (label === 'Aktivitas Pembelajaran') return 'activities'
   if (label === 'Asesmen & Rubrik') return 'assessments'
   if (label === 'LKPD') return 'worksheets'

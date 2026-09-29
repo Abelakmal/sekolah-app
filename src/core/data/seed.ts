@@ -136,15 +136,23 @@ const defaultModuleAssessments: ModuleAssessments = {
     'Guru mengamati proses latihan passing bawah saat peserta didik berlatih individu, berpasangan, dan kelompok kecil.',
   summativeAssessment:
     'Peserta didik mempraktikkan teknik passing bawah dalam permainan sederhana dan dinilai berdasarkan sikap, pengetahuan, serta keterampilan praktik.',
+  groupRubricContext:
+    'Diskusikan jawaban bersama kelompok. Jelaskan langkah teknik passing bawah dan alasan penggunaan posisi tubuh yang benar secara runtut.',
+  teacherNotes:
+    '<ul><li>Berikan umpan balik langsung pada aspek yang perlu diperbaiki.</li><li>Berikan pujian pada aspek yang sudah dilakukan dengan baik untuk memotivasi peserta didik.</li></ul>',
   individualRubricObjective:
     'Menilai kemampuan peserta didik memahami konsep dasar passing bawah setelah pembelajaran teori.',
   individualRubricTiming: 'Setelah penjelasan di kelas selama kegiatan inti.',
   individualScoreScale:
     '5 jawaban benar: Nilai 100 (Sangat Baik)\n4 jawaban benar: Nilai 80 (Baik)\n3 jawaban benar: Nilai 60 (Cukup)\n2 jawaban benar: Nilai 40 (Perlu Peningkatan)\n1 atau tidak ada jawaban benar: Nilai 20 (Perlu Bimbingan)',
-  practiceTask: 'Mempraktikkan passing bawah dalam permainan bola voli.',
+  practiceObjective: 'Mengukur keterampilan peserta didik dalam melakukan passing bawah pada akhir pembelajaran.',
+  practiceTiming: 'Dilaksanakan pada akhir sesi praktik sebagai bagian dari asesmen sumatif.',
+  practiceTask: 'Mempraktikkan teknik passing bawah dalam permainan bola voli.',
   practiceTotalScore: 50,
   practiceCriteria:
     'Sangat Baik: 45-50\nBaik: 40-44\nCukup: 35-39\nPerlu Perbaikan: <35',
+  studentSelfReflection:
+    'Peserta didik menulis refleksi: kesulitan terbesar saat mempelajari passing bawah, cara mengatasinya, dan hal yang dipelajari dari proses latihan.',
   groupRubric: [
     {
       id: 'rubric-group-1',

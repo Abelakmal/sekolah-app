@@ -1,6 +1,6 @@
 export type UserRole = 'admin' | 'teacher'
 
-export type AppView = 'admin' | 'topics' | 'topic-detail' | 'builder' | 'archive'
+export type AppView = 'admin' | 'topics' | 'topic-detail' | 'builder' | 'archive' | 'learning-devices'
 
 export type ClassGrade = 1 | 2 | 3 | 4 | 5 | 6
 

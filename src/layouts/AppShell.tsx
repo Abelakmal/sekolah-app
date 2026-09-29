@@ -6,6 +6,7 @@ import {
   BriefcaseBusiness,
   Calendar,
   ClipboardList,
+  FileStack,
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
@@ -32,6 +33,7 @@ const navItems: Array<{ id: AppView; label: string; icon: typeof BookOpenCheck; 
   { id: 'topics', label: 'Topik Pembelajaran', icon: BookOpenCheck, roles: ['teacher'] },
   { id: 'builder', label: 'Penyusun Administrasi', icon: ClipboardList, roles: ['teacher'] },
   { id: 'archive', label: 'Arsip Administrasi', icon: Archive, roles: ['teacher'] },
+  { id: 'learning-devices', label: 'Perangkat Pembelajaran', icon: FileStack, roles: ['teacher'] },
 ]
 
 const topicStepLabels: Record<BankTab, string> = {
@@ -273,6 +275,7 @@ function pageTitle(view: AppView, role: UserRole) {
     'topic-detail': 'Detail Topik Pembelajaran',
     builder: 'Penyusun Administrasi',
     archive: 'Arsip Administrasi',
+    'learning-devices': 'Perangkat Pembelajaran',
   }
   return titles[view]
 }

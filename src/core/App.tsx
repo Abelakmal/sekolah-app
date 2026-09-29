@@ -6,6 +6,7 @@ import { ArchivePage } from '../features/archive/ArchivePage'
 import { AdminPage } from '../features/admin/AdminPage'
 import { LoginPage } from '../features/auth/LoginPage'
 import { BuilderPage } from '../features/builder/BuilderPage'
+import { LearningDevicesPage } from '../features/learning-devices/LearningDevicesPage'
 import { TopicDetailPanel } from '../features/topics/components/BankTabs'
 import { TopicsPage } from '../features/topics/TopicsPage'
 import { AppShell } from '../layouts/AppShell'
@@ -329,6 +330,10 @@ function renderContent({
 
   if (activeView === 'archive') {
     return <ArchivePage setActiveView={setActiveView} setState={setState} state={state} />
+  }
+
+  if (activeView === 'learning-devices') {
+    return <LearningDevicesPage teacherId={state.activeTeacherId} />
   }
 
   return (

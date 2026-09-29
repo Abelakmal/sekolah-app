@@ -42,6 +42,19 @@ create table if not exists public.topic_module_data (
   updated_at timestamptz not null default now()
 );
 create index if not exists topic_module_data_teacher_idx on public.topic_module_data (teacher_id);
+create table if not exists public.learning_devices (
+  id uuid primary key default gen_random_uuid(),
+  teacher_id uuid not null references public.teachers(id) on delete cascade,
+  topic text not null check (length(trim(topic)) > 0),
+  file_name text not null,
+  file_path text not null,
+  file_url text not null,
+  file_type text not null check (file_type in ('application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')),
+  file_size integer not null check (file_size > 0),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists learning_devices_teacher_idx on public.learning_devices (teacher_id, created_at desc);
 do $$ begin if not exists (
   select 1
   from pg_constraint
@@ -56,6 +69,7 @@ alter table public.profiles enable row level security;
 alter table public.teachers enable row level security;
 alter table public.learning_topics enable row level security;
 alter table public.topic_module_data enable row level security;
+alter table public.learning_devices enable row level security;
 create or replace function public.is_admin(user_id uuid) returns boolean language sql security definer
 set search_path = public stable as $$
 select exists (
@@ -110,6 +124,34 @@ update to authenticated using (
 grant select,
   insert,
   update on public.topic_module_data to authenticated;
+drop policy if exists "learning_devices_select_own_or_admin" on public.learning_devices;
+create policy "learning_devices_select_own_or_admin" on public.learning_devices for select to authenticated using (
+  public.is_admin(auth.uid()) or exists (
+    select 1 from public.teachers where teachers.id = learning_devices.teacher_id and teachers.profile_id = auth.uid()
+  )
+);
+drop policy if exists "learning_devices_insert_own_or_admin" on public.learning_devices;
+create policy "learning_devices_insert_own_or_admin" on public.learning_devices for insert to authenticated with check (
+  public.is_admin(auth.uid()) or exists (
+    select 1 from public.teachers where teachers.id = learning_devices.teacher_id and teachers.profile_id = auth.uid()
+  )
+);
+drop policy if exists "learning_devices_update_own_or_admin" on public.learning_devices;
+create policy "learning_devices_update_own_or_admin" on public.learning_devices for update to authenticated using (
+  public.is_admin(auth.uid()) or exists (
+    select 1 from public.teachers where teachers.id = learning_devices.teacher_id and teachers.profile_id = auth.uid()
+  ) with check (
+  public.is_admin(auth.uid()) or exists (
+    select 1 from public.teachers where teachers.id = learning_devices.teacher_id and teachers.profile_id = auth.uid()
+  )
+);
+drop policy if exists "learning_devices_delete_own_or_admin" on public.learning_devices;
+create policy "learning_devices_delete_own_or_admin" on public.learning_devices for delete to authenticated using (
+  public.is_admin(auth.uid()) or exists (
+    select 1 from public.teachers where teachers.id = learning_devices.teacher_id and teachers.profile_id = auth.uid()
+  )
+);
+grant select, insert, update, delete on public.learning_devices to authenticated;
 drop policy if exists "profiles_select_own_or_admin" on public.profiles;
 create policy "profiles_select_own_or_admin" on public.profiles for
 select to authenticated using (

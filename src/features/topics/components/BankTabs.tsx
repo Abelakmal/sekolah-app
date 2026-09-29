@@ -11,6 +11,15 @@ import type {
   ModuleCompetency,
   ModuleInfo,
 } from "../../../core/types";
+import { supabase } from "../../../core/supabase/client";
+import {
+  applyTopicModuleData,
+  getTopicModuleData,
+} from "../../../core/supabase/topicModuleData";
+import type {
+  SupabaseTopicModuleData,
+  TopicModuleData,
+} from "../../../core/supabase/topicModuleData";
 import {
   className,
   createId,
@@ -84,6 +93,7 @@ export function TopicDetailPanel({
   state: AppState;
 }) {
   const [query, setQuery] = useState("");
+  const [isRemoteDataReady, setIsRemoteDataReady] = useState(false);
   const info = getModuleInfo(state, selectedTopic);
   const activeTabIndex = bankTabs.indexOf(activeTab);
   const previousTab = bankTabs[activeTabIndex - 1];
@@ -92,6 +102,62 @@ export function TopicDetailPanel({
   useEffect(() => {
     setQuery("");
   }, [activeTab]);
+
+  useEffect(() => {
+    let isCurrent = true;
+    setIsRemoteDataReady(false);
+
+    async function loadTopicModuleData() {
+      const { data, error } = await supabase
+        .from("topic_module_data")
+        .select("topic_id,data")
+        .eq("topic_id", selectedTopic.id)
+        .maybeSingle<SupabaseTopicModuleData>();
+
+      if (!isCurrent) return;
+      if (error) {
+        console.error("Data modul gagal dimuat dari Supabase.", error);
+        return;
+      }
+      if (data?.data) {
+        setState((current) =>
+          applyTopicModuleData(current, selectedTopic.id, data.data),
+        );
+      }
+      setIsRemoteDataReady(true);
+    }
+
+    void loadTopicModuleData();
+    return () => {
+      isCurrent = false;
+    };
+  }, [selectedTopic.id, setState]);
+
+  const remoteModuleData = getTopicModuleData(state, selectedTopic.id);
+  const remoteModuleDataKey = JSON.stringify(remoteModuleData);
+
+  useEffect(() => {
+    if (!isRemoteDataReady) return;
+
+    const timer = window.setTimeout(() => {
+      void supabase
+        .from("topic_module_data")
+        .upsert(
+          {
+            data: JSON.parse(remoteModuleDataKey) as TopicModuleData,
+            teacher_id: selectedTopic.teacherId,
+            topic_id: selectedTopic.id,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "topic_id" },
+        )
+        .then(({ error }) => {
+          if (error) console.error("Data modul gagal disimpan ke Supabase.", error);
+        });
+    }, 700);
+
+    return () => window.clearTimeout(timer);
+  }, [isRemoteDataReady, remoteModuleDataKey, selectedTopic.id, selectedTopic.teacherId]);
 
   return (
     <div className="grid gap-4 xl:h-[calc(100vh-116px)] xl:min-h-0 xl:grid-cols-[300px_minmax(0,1fr)] xl:overflow-hidden 2xl:grid-cols-[320px_minmax(0,1fr)]">

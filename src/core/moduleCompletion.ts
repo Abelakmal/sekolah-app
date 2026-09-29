@@ -91,20 +91,13 @@ export function getModuleCompletion(state: AppState, topic: LearningTopic, draft
       complete: false,
     },
     {
-      label: 'LKPD',
-      missing: isModuleWorksheetsComplete(worksheets) ? [] : ['Minimal satu LKPD berkelompok dan satu LKPD individu'],
-      complete: false,
-    },
-    {
       label: 'Lampiran',
       missing: missing([
+        ['LKPD', isModuleWorksheetsComplete(worksheets)],
         ['Bahan bacaan', appendices.readingMaterials || appendices.readingSections.length > 0],
         ['Media pembelajaran', appendices.learningMedia],
         ['Instrumen penilaian', appendices.assessmentInstruments],
         ['Glosarium', appendices.glossary.length > 0],
-        ['Format penilaian sikap', assessments.attitudeScores.length > 0],
-        ['Format penilaian pengetahuan', assessments.knowledgeScores.length > 0],
-        ['Format penilaian praktik', assessments.practiceScores.length > 0],
       ]),
       complete: false,
     },

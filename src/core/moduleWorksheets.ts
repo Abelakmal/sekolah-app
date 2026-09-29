@@ -6,7 +6,7 @@ export function getModuleWorksheets(state: AppState, topic: LearningTopic): Work
 
 export function isModuleWorksheetsComplete(worksheets: Worksheet[]) {
   return (
-    worksheets.some((item) => item.type === 'Berkelompok' && item.title && item.questions) &&
-    worksheets.some((item) => item.type === 'Individu' && item.title && item.questions)
+    worksheets.some((item) => item.type === 'Berkelompok' && item.title && (item.content || item.questions)) &&
+    worksheets.some((item) => item.type === 'Individu' && item.title && (item.content || item.questions))
   )
 }

@@ -1,15 +1,15 @@
 import { useState } from 'react'
-import type { Dispatch, SetStateAction } from 'react'
+import type { Dispatch, ReactNode, SetStateAction } from 'react'
 import { FileUp, Paperclip } from 'lucide-react'
 import { getModuleAppendices } from '../../../core/moduleAppendices'
-import { getModuleAssessments } from '../../../core/moduleAssessments'
-import type { AppState, AppendixFile, GlossaryTerm, LearningTopic, MaterialAttachment, ModuleAppendices, ModuleAssessments, ReadingSection } from '../../../core/types'
+import type { AppState, AppendixFile, CustomAppendixSection, GlossaryTerm, LearningTopic, MaterialAttachment, ModuleAppendices, ReadingSection } from '../../../core/types'
 import { createId, maxAttachmentBytes, readAttachment } from '../../../core/utils'
 import { TextArea, TextField } from '../../../shared/components/FormControls'
 import { FormPanel } from '../../../shared/components/FormPanel'
+import { RichTextEditor } from '../../../shared/components/RichTextEditor'
 import { confirmDelete } from '../../../shared/utils/confirmDelete'
 import { AutoSavedNotice, BankSection } from './BankSection'
-import { AssessmentScoreEditor } from './AssessmentScoreEditor'
+import { RichWorksheetEditor } from './RichWorksheetEditor'
 
 type AppendicesTabProps = {
   query: string
@@ -20,7 +20,6 @@ type AppendicesTabProps = {
 
 export function AppendicesTab({ query, setState, state, topic }: AppendicesTabProps) {
   const appendices = getModuleAppendices(state, topic)
-  const moduleAssessments = getModuleAssessments(state, topic)
   const mainAppendicesComplete = Boolean(appendices.readingMaterials && appendices.learningMedia && appendices.assessmentInstruments)
 
   function updateAppendices(patch: Partial<ModuleAppendices>) {
@@ -32,16 +31,6 @@ export function AppendicesTab({ query, setState, state, topic }: AppendicesTabPr
           ...appendices,
           ...patch,
         },
-      },
-    }))
-  }
-
-  function updateModuleAssessments(patch: Partial<ModuleAssessments>) {
-    setState((current) => ({
-      ...current,
-      moduleAssessments: {
-        ...current.moduleAssessments,
-        [topic.id]: { ...moduleAssessments, ...patch },
       },
     }))
   }
@@ -61,27 +50,8 @@ export function AppendicesTab({ query, setState, state, topic }: AppendicesTabPr
           </div>
           <AutoSavedNotice />
         </div>
-        <BankSection defaultOpen isComplete={mainAppendicesComplete} title="Bahan, Media, dan Instrumen">
-          <div className="grid gap-6 lg:grid-cols-3">
-            <TextArea label="Bahan Bacaan" onChange={(readingMaterials) => updateAppendices({ readingMaterials })} value={appendices.readingMaterials} />
-            <TextArea label="Media Pembelajaran" onChange={(learningMedia) => updateAppendices({ learningMedia })} value={appendices.learningMedia} />
-            <TextArea
-              label="Instrumen Penilaian"
-              onChange={(assessmentInstruments) => updateAppendices({ assessmentInstruments })}
-              value={appendices.assessmentInstruments}
-            />
-          </div>
-        </BankSection>
-      </section>
-
-      <section className="rounded-lg border border-slate-200 bg-white p-5">
-        <BankSection defaultOpen title="Lampiran 4 — Instrumen Penilaian">
-          <p className="mb-5 text-sm leading-6 text-slate-500">Format ini diekspor ke Lampiran 4, bukan ke bagian asesmen utama.</p>
-          <div className="grid gap-5 xl:grid-cols-3">
-            <AssessmentScoreEditor onChange={(attitudeScores) => updateModuleAssessments({ attitudeScores })} rows={moduleAssessments.attitudeScores} title="Format Penilaian Sikap" />
-            <AssessmentScoreEditor onChange={(knowledgeScores) => updateModuleAssessments({ knowledgeScores })} rows={moduleAssessments.knowledgeScores} title="Format Penilaian Pengetahuan" />
-            <AssessmentScoreEditor onChange={(practiceScores) => updateModuleAssessments({ practiceScores })} rows={moduleAssessments.practiceScores} title="Format Penilaian Praktik" />
-          </div>
+        <BankSection defaultOpen isComplete={mainAppendicesComplete} title="Lampiran 1 — Bahan Bacaan Guru dan Peserta Didik">
+          <RichTextEditor label="Bahan Bacaan" onChange={(readingMaterials) => updateAppendices({ readingMaterials })} value={appendices.readingMaterials} />
         </BankSection>
       </section>
 
@@ -90,17 +60,91 @@ export function AppendicesTab({ query, setState, state, topic }: AppendicesTabPr
         query={query}
         values={appendices.readingSections}
       />
+
+      <section className="rounded-lg border border-slate-200 bg-white p-5">
+        <BankSection defaultOpen title="Lampiran 2 — Media Pembelajaran">
+          <RichTextEditor label="Media Pembelajaran" onChange={(learningMedia) => updateAppendices({ learningMedia })} value={appendices.learningMedia} />
+        </BankSection>
+      </section>
+
+      <section className="rounded-lg border border-slate-200 bg-white p-5">
+        <h3 className="mb-1 text-base font-semibold">Lampiran 3 — LKPD</h3>
+        <p className="mb-5 text-sm text-slate-500">Buat LKPD berkelompok dan individu yang akan ditempatkan sebagai Lampiran 3 pada dokumen Word.</p>
+        <RichWorksheetEditor query={query} setState={setState} state={state} topic={topic} />
+      </section>
+
+      <section className="rounded-lg border border-slate-200 bg-white p-5">
+        <BankSection defaultOpen title="Lampiran 4 — Instrumen Penilaian">
+          <p className="mb-5 text-sm leading-6 text-slate-500">Isi langsung seluruh instrumen, rubrik, dan format penilaian sesuai kebutuhan modul. Konten ini diekspor sebagai satu Lampiran 4.</p>
+          <RichTextEditor label="Isi Instrumen Penilaian" onChange={(assessmentInstruments) => updateAppendices({ assessmentInstruments })} value={appendices.assessmentInstruments} />
+        </BankSection>
+      </section>
+
       <GlossaryEditor
         onChange={(glossary) => updateAppendices({ glossary })}
         query={query}
         values={appendices.glossary}
       />
+      <CustomAppendixEditor onChange={(customSections) => updateAppendices({ customSections })} values={appendices.customSections} />
       <AppendixFileEditor
         files={appendices.files}
         onChange={(files) => updateAppendices({ files })}
         query={query}
       />
     </div>
+  )
+}
+
+function CustomAppendixEditor({ onChange, values }: { onChange: (values: CustomAppendixSection[]) => void; values: CustomAppendixSection[] }) {
+  const [editing, setEditing] = useState<CustomAppendixSection | null>(null)
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [draft, setDraft] = useState({ title: '', content: '' })
+
+  function closeForm() {
+    setEditing(null)
+    setIsFormOpen(false)
+    setDraft({ title: '', content: '' })
+  }
+
+  function save() {
+    if (!draft.title.trim() || !draft.content.trim()) return
+    onChange(editing ? values.map((item) => (item.id === editing.id ? { ...item, ...draft } : item)) : [...values, { id: createId('appendix-section'), ...draft }])
+    closeForm()
+  }
+
+  return (
+    <section className="rounded-lg border border-slate-200 bg-white p-5">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div>
+          <h3 className="text-base font-semibold">Lampiran Tambahan</h3>
+          <p className="text-sm text-slate-500">Tambahkan lampiran bebas, misalnya gambar kegiatan, materi pendukung, atau panduan khusus.</p>
+        </div>
+        <button className="btn-primary" onClick={() => { setEditing(null); setDraft({ title: '', content: '' }); setIsFormOpen(true) }} type="button">Tambah Lampiran</button>
+      </div>
+      <div className="grid gap-2">
+        {values.map((item, index) => (
+          <div className="flex items-start justify-between gap-3 rounded-md border border-slate-200 p-3" key={item.id}>
+            <div className="min-w-0"><p className="font-medium">Lampiran {index + 7} — {item.title}</p></div>
+            <div className="flex shrink-0 gap-2">
+              <button className="text-sm font-semibold text-blue-700" onClick={() => { setEditing(item); setDraft({ title: item.title, content: item.content }); setIsFormOpen(true) }} type="button">Edit</button>
+              <button className="text-sm font-semibold text-red-700" onClick={() => { if (confirmDelete('Hapus lampiran tambahan ini?')) onChange(values.filter((entry) => entry.id !== item.id)) }} type="button">Hapus</button>
+            </div>
+          </div>
+        ))}
+        {values.length === 0 && <div className="rounded-md border border-dashed border-slate-300 p-4 text-sm text-slate-500">Belum ada lampiran tambahan.</div>}
+      </div>
+      {isFormOpen && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/40 px-4 py-6" onMouseDown={closeForm}>
+          <section aria-modal="true" className="max-h-full w-full max-w-4xl overflow-y-auto rounded-xl bg-white p-5 shadow-xl" onMouseDown={(event) => event.stopPropagation()} role="dialog">
+            <div className="mb-5 flex items-center justify-between gap-3 border-b border-slate-200 pb-4">
+              <h4 className="text-lg font-semibold">{editing ? 'Edit Lampiran Tambahan' : 'Tambah Lampiran Tambahan'}</h4>
+              <div className="flex gap-2"><button className="btn-secondary" onClick={closeForm} type="button">Batal</button><button className="btn-primary" onClick={save} type="button">Simpan</button></div>
+            </div>
+            <div className="grid gap-5"><TextField label="Judul Lampiran" onChange={(title) => setDraft((current) => ({ ...current, title }))} value={draft.title} /><RichTextEditor label="Isi Lampiran" onChange={(content) => setDraft((current) => ({ ...current, content }))} value={draft.content} /></div>
+          </section>
+        </div>
+      )}
+    </section>
   )
 }
 
@@ -136,8 +180,8 @@ function ReadingSectionEditor({
     <section className="rounded-lg border border-slate-200 bg-white p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
-          <h3 className="text-base font-semibold">Bahan Bacaan Bersubbagian</h3>
-          <p className="text-sm text-slate-500">Gunakan ini untuk membuat Lampiran 1 seperti PDF: sejarah, pengertian, langkah gerak, dan submateri lain.</p>
+          <h3 className="text-base font-semibold">Bagian Bahan Bacaan</h3>
+          <p className="text-sm text-slate-500">Tambahkan sejarah, pengertian, langkah gerak, atau submateri lain ke Lampiran 1.</p>
         </div>
         <button className="btn-primary" onClick={reset} type="button">
           Tambah
@@ -199,12 +243,20 @@ function GlossaryEditor({
   values: GlossaryTerm[]
 }) {
   const [editing, setEditing] = useState<GlossaryTerm | null>(null)
+  const [isFormOpen, setIsFormOpen] = useState(false)
   const [draft, setDraft] = useState({ term: '', definition: '' })
   const items = values.filter((item) => `${item.term} ${item.definition}`.toLowerCase().includes(query.toLowerCase()))
 
   function reset() {
     setEditing(null)
+    setIsFormOpen(false)
     setDraft({ term: '', definition: '' })
+  }
+
+  function openNewForm() {
+    setEditing(null)
+    setDraft({ term: '', definition: '' })
+    setIsFormOpen(true)
   }
 
   function save() {
@@ -220,8 +272,8 @@ function GlossaryEditor({
   return (
     <section className="rounded-lg border border-slate-200 bg-white p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h3 className="text-base font-semibold">Glosarium</h3>
-        <button className="btn-primary" onClick={reset} type="button">
+        <h3 className="text-base font-semibold">Lampiran 5 — Glosarium</h3>
+        <button className="btn-primary" onClick={openNewForm} type="button">
           Tambah
         </button>
       </div>
@@ -238,6 +290,7 @@ function GlossaryEditor({
                 onClick={() => {
                   setEditing(item)
                   setDraft({ term: item.term, definition: item.definition })
+                  setIsFormOpen(true)
                 }}
                 type="button"
               >
@@ -257,13 +310,27 @@ function GlossaryEditor({
         ))}
         {items.length === 0 && <div className="rounded-md border border-dashed border-slate-300 p-4 text-sm text-slate-500">Belum ada glosarium.</div>}
       </div>
-      {(editing || draft.term || draft.definition) && (
-        <FormPanel title={editing ? 'Edit Glosarium' : 'Tambah Glosarium'} onCancel={reset} onSave={save}>
+      {isFormOpen && (
+        <GlossaryFormModal title={editing ? 'Edit Glosarium' : 'Tambah Glosarium'} onCancel={reset} onSave={save}>
           <TextField label="Istilah" onChange={(term) => setDraft((current) => ({ ...current, term }))} value={draft.term} />
           <TextArea label="Definisi" onChange={(definition) => setDraft((current) => ({ ...current, definition }))} value={draft.definition} />
-        </FormPanel>
+        </GlossaryFormModal>
       )}
     </section>
+  )
+}
+
+function GlossaryFormModal({ children, onCancel, onSave, title }: { children: ReactNode; onCancel: () => void; onSave: () => void; title: string }) {
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/40 px-4 py-6" onMouseDown={onCancel}>
+      <section aria-modal="true" className="w-full max-w-2xl rounded-xl bg-white p-5 shadow-xl" onMouseDown={(event) => event.stopPropagation()} role="dialog">
+        <div className="mb-5 flex items-center justify-between gap-3 border-b border-slate-200 pb-4">
+          <h4 className="text-lg font-semibold">{title}</h4>
+          <div className="flex gap-2"><button className="btn-secondary" onClick={onCancel} type="button">Batal</button><button className="btn-primary" onClick={onSave} type="button">Simpan</button></div>
+        </div>
+        <div className="grid gap-5">{children}</div>
+      </section>
+    </div>
   )
 }
 

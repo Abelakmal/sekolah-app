@@ -59,7 +59,7 @@ const steps: Array<{ id: BuilderStepId; label: string }> = [
   { id: "competencies", label: "Kompetensi & Tujuan" },
   { id: "activities", label: "Aktivitas Pembelajaran" },
   { id: "assessments", label: "Asesmen & Rubrik" },
-  { id: "attachments", label: "LKPD & Lampiran" },
+  { id: "attachments", label: "Lampiran" },
   { id: "review", label: "Review Dokumen" },
 ];
 
@@ -798,34 +798,52 @@ function AssessmentsStep({ state, topic }: { state: AppState; topic: LearningTop
   const moduleAssessments = getModuleAssessments(state, topic);
 
   return (
-    <div className="grid gap-5">
-      <ReadOnlyTable
-        caption="Asesmen dan rubrik terstruktur otomatis masuk ke export Word."
-        rows={[
-          ["Diagnostik", moduleAssessments.diagnosticAssessment],
-          ["Formatif", moduleAssessments.formativeAssessment],
-          ["Sumatif", moduleAssessments.summativeAssessment],
-          ["Konteks Rubrik Kelompok", moduleAssessments.groupRubricContext],
-          ["Rubrik Kelompok", `${moduleAssessments.groupRubric.length} aspek`],
-          ["Catatan Guru", moduleAssessments.teacherNotes],
-          [
-            "Rubrik Individu",
-            `${moduleAssessments.individualRubric.length} aspek`,
-          ],
-          [
-            "Tujuan Rubrik Individu",
-            moduleAssessments.individualRubricObjective,
-          ],
-          ["Waktu Rubrik Individu", moduleAssessments.individualRubricTiming],
-          ["Skala Nilai Individu", moduleAssessments.individualScoreScale],
-          ["Tujuan Penilaian Praktik", moduleAssessments.practiceObjective],
-          ["Waktu Penilaian Praktik", moduleAssessments.practiceTiming],
-          ["Tugas Praktik", moduleAssessments.practiceTask],
-          ["Total Skor Praktik", moduleAssessments.practiceTotalScore],
-          ["Kriteria Praktik", moduleAssessments.practiceCriteria],
-          ["Refleksi Diri Siswa", moduleAssessments.studentSelfReflection],
-        ]}
-      />
+    <AssessmentsDocumentPreview assessments={moduleAssessments} />
+  );
+}
+
+function AssessmentsDocumentPreview({ assessments }: { assessments: ReturnType<typeof getModuleAssessments> }) {
+  return (
+    <section className="overflow-hidden border border-black bg-white shadow-sm">
+      <div className="border-b border-black bg-[#DFEBEB] px-3 py-2 text-sm font-bold uppercase text-black">J. Asesmen/Penilaian</div>
+      <div className="grid gap-4 p-4 text-sm text-black">
+        <AssessmentRichPreview title="Asesmen Diagnostik" value={assessments.diagnosticAssessment} />
+        <AssessmentRichPreview title="Asesmen Formatif" value={assessments.formativeAssessment} />
+        <AssessmentRichPreview title="Asesmen Sumatif" value={assessments.summativeAssessment} />
+        <AssessmentRichPreview title="Rubrik Penilaian Kelompok" value={assessments.groupRubricContext} />
+        <AssessmentRubricPreview rows={assessments.groupRubric} />
+        <AssessmentRichPreview title="Catatan Guru" value={assessments.teacherNotes} />
+        <AssessmentRichPreview title="Rubrik Penilaian Individu — Tujuan" value={assessments.individualRubricObjective} />
+        <AssessmentRichPreview title="Waktu Pelaksanaan" value={assessments.individualRubricTiming} />
+        <AssessmentRubricPreview rows={assessments.individualRubric} />
+        <AssessmentRichPreview title="Skala Nilai Rubrik Individu" value={assessments.individualScoreScale} />
+        <AssessmentRichPreview title="Penilaian Praktik — Tujuan" value={assessments.practiceObjective} />
+        <AssessmentRichPreview title="Waktu Pelaksanaan Praktik" value={assessments.practiceTiming} />
+        <AssessmentRichPreview title="Instrumen/Tugas Praktik" value={assessments.practiceTask} />
+        <AssessmentRichPreview title={`Total Skor Praktik: ${assessments.practiceTotalScore || '-'}`} value={assessments.practiceCriteria} />
+        <AssessmentRichPreview title="Refleksi Diri Siswa (Sumatif)" value={assessments.studentSelfReflection} />
+      </div>
+    </section>
+  );
+}
+
+function AssessmentRichPreview({ title, value }: { title: string; value: string }) {
+  return (
+    <article>
+      <h3 className="mb-1 font-bold">{title}</h3>
+      <div className="leading-6 [&_a]:text-blue-700 [&_a]:underline [&_h3]:mt-3 [&_h3]:font-bold [&_img]:my-3 [&_img]:max-h-96 [&_img]:max-w-full [&_img]:rounded [&_li]:ml-5 [&_ol]:my-2 [&_ul]:my-2" dangerouslySetInnerHTML={{ __html: activityPreviewHtml(value) }} />
+    </article>
+  );
+}
+
+function AssessmentRubricPreview({ rows }: { rows: Array<{ id: string; aspect: string; excellent: string; good: string; fair: string; needsImprovement: string }> }) {
+  if (rows.length === 0) return <p className="italic text-slate-500">Belum ada rubrik.</p>
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-[720px] w-full border-collapse text-left text-xs">
+        <thead><tr className="bg-slate-100"><th className="border border-slate-300 p-2">Aspek Penilaian</th><th className="border border-slate-300 p-2">Baik Sekali</th><th className="border border-slate-300 p-2">Baik</th><th className="border border-slate-300 p-2">Cukup</th><th className="border border-slate-300 p-2">Perlu Perbaikan</th></tr></thead>
+        <tbody>{rows.map((row) => <tr key={row.id}><td className="border border-slate-300 p-2 font-semibold">{row.aspect}</td><td className="border border-slate-300 p-2">{row.excellent}</td><td className="border border-slate-300 p-2">{row.good}</td><td className="border border-slate-300 p-2">{row.fair}</td><td className="border border-slate-300 p-2">{row.needsImprovement}</td></tr>)}</tbody>
+      </table>
     </div>
   );
 }
@@ -839,42 +857,64 @@ function AttachmentsStep({
 }) {
   const worksheets = getModuleWorksheets(state, topic);
   const appendices = getModuleAppendices(state, topic);
-  const moduleAssessments = getModuleAssessments(state, topic);
 
   return (
-    <div className="grid gap-5">
-      <ReadOnlyTable
-        caption="LKPD otomatis masuk ke export Word."
-        rows={[
-          [
-            "LKPD Berkelompok",
-            `${worksheets.filter((item) => item.type === "Berkelompok").length} item`,
-          ],
-          [
-            "LKPD Individu",
-            `${worksheets.filter((item) => item.type === "Individu").length} item`,
-          ],
-        ]}
-      />
-      <ReadOnlyTable
-        caption="Lampiran otomatis masuk ke export Word."
-        rows={[
-          [
-            "Bahan Bacaan",
-            appendices.readingSections.length > 0
-              ? `${appendices.readingSections.length} subbagian`
-              : appendices.readingMaterials,
-          ],
-          ["Media Pembelajaran", appendices.learningMedia],
-          ["Instrumen Penilaian", appendices.assessmentInstruments],
-          ["Format Penilaian Sikap", `${moduleAssessments.attitudeScores.length} aspek`],
-          ["Format Penilaian Pengetahuan", `${moduleAssessments.knowledgeScores.length} aspek`],
-          ["Format Penilaian Praktik", `${moduleAssessments.practiceScores.length} aspek`],
-          ["Glosarium", `${appendices.glossary.length} istilah`],
-          ["File Pendukung", `${appendices.files.length} file`],
-        ]}
-      />
-    </div>
+    <AppendicesDocumentPreview appendices={appendices} topic={topic} worksheets={worksheets} />
+  );
+}
+
+function AppendicesDocumentPreview({
+  appendices,
+  topic,
+  worksheets,
+}: {
+  appendices: ReturnType<typeof getModuleAppendices>;
+  topic: LearningTopic;
+  worksheets: ReturnType<typeof getModuleWorksheets>;
+}) {
+  const sections = [
+    {
+      title: "Lampiran 1 — Bahan Bacaan Guru dan Peserta Didik",
+      content: appendices.readingMaterials,
+      extra: appendices.readingSections.map((item) => `<h3>${escapePreviewHtml(item.title)}</h3><p>${escapePreviewHtml(item.content)}</p>`).join(""),
+    },
+    { title: "Lampiran 2 — Media Pembelajaran", content: appendices.learningMedia, extra: "" },
+    {
+      title: "Lampiran 3 — LKPD",
+      content: worksheets
+        .map((item) => `<h3>LKPD ${escapePreviewHtml(item.type)} — ${escapePreviewHtml(item.title)}</h3>${item.content ? item.content : `<p>${escapePreviewHtml(item.questions)}</p>`}`)
+        .join(""),
+      extra: "",
+    },
+    { title: "Lampiran 4 — Instrumen Penilaian", content: appendices.assessmentInstruments, extra: "" },
+    {
+      title: "Lampiran 5 — Glosarium",
+      content: `<h3 class="center">GLOSARIUM</h3><ul>${appendices.glossary.map((item) => `<li><strong>${escapePreviewHtml(item.term)}:</strong> ${escapePreviewHtml(item.definition)}</li>`).join("")}</ul>`,
+      extra: "",
+    },
+    ...appendices.customSections.map((item, index) => ({ title: `Lampiran ${index + 6} — ${item.title}`, content: item.content, extra: "" })),
+  ].filter((section) => section.content || section.extra);
+
+  return (
+    <section className="overflow-hidden border border-black bg-white shadow-sm">
+      <div className="border-b border-black bg-[#DFEBEB] px-3 py-2 text-sm font-bold uppercase text-black">L. Lampiran</div>
+      <div className="border-b border-black px-4 py-3 text-sm text-black">
+        <p className="font-semibold">Lampiran yang akan diexport untuk topik {topic.title}:</p>
+        <ol className="mt-2 list-decimal pl-5">
+          {sections.map((section) => <li key={section.title}>{section.title.replace(/^Lampiran \d+ — /, "")}</li>)}
+        </ol>
+      </div>
+      {sections.map((section) => (
+        <article className="border-b border-black last:border-b-0" key={section.title}>
+          <ModuleSheetHeading>{section.title}</ModuleSheetHeading>
+          <div
+            className="px-4 py-3 text-sm leading-6 text-black [&_a]:text-blue-700 [&_a]:underline [&_h3]:mt-3 [&_h3]:font-bold [&_img]:my-3 [&_img]:max-h-96 [&_img]:max-w-full [&_img]:rounded [&_li]:ml-5 [&_ol]:my-2 [&_ul]:my-2"
+            dangerouslySetInnerHTML={{ __html: activityPreviewHtml(`${section.content ?? ""}${section.extra ?? ""}`) }}
+          />
+        </article>
+      ))}
+      {sections.length === 0 && <ModuleSheetContent value={undefined} />}
+    </section>
   );
 }
 
@@ -919,7 +959,10 @@ function ReviewStep({
         </div>
       </section>
       <CompletionGrid completion={completion} />
-      <DraftSummary selected={selected} state={state} topic={topic} />
+      <section className="overflow-hidden rounded-lg border border-slate-200 bg-slate-100 p-3">
+        <p className="mb-3 text-sm font-semibold text-slate-700">Preview isi dokumen</p>
+        <iframe className="h-[72vh] min-w-[320px] w-full rounded-md border border-slate-200 bg-white" srcDoc={buildAdministrationDocumentHtml({ selected, state, topic })} title={`Review Administrasi ${topic.title}`} />
+      </section>
     </div>
   );
 }
@@ -1195,10 +1238,8 @@ function getCompletion(
       ),
     },
     {
-      label: "LKPD & Lampiran",
+      label: "Lampiran",
       complete: Boolean(
-        moduleCompletion.sections.find((section) => section.label === "LKPD")
-          ?.complete &&
         moduleCompletion.sections.find(
           (section) => section.label === "Lampiran",
         )?.complete,

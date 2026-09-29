@@ -256,6 +256,7 @@ const defaultModuleAppendices: ModuleAppendices = {
         'Gerak lokomotor meliputi berlari dan melompat, gerak non-lokomotor meliputi membungkuk dan mengayun tangan, sedangkan gerak manipulatif meliputi mengontrol bola melalui servis, passing, dan smash.',
     },
   ],
+  customSections: [],
   learningMedia:
     'Bola voli, peluit, cone pembatas, lapangan sekolah, gambar urutan gerak passing bawah, dan video demonstrasi teknik dasar.',
   assessmentInstruments:

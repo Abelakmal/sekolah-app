@@ -39,7 +39,6 @@ const topicStepLabels: Record<BankTab, string> = {
   competencies: 'Kompetensi & Tujuan',
   activities: 'Aktivitas Pembelajaran',
   assessments: 'Asesmen & Rubrik',
-  worksheets: 'LKPD',
   attachments: 'Lampiran',
 }
 
@@ -50,8 +49,7 @@ const completionItemTotals: Record<BankTab, number> = {
   competencies: 10,
   activities: 1,
   assessments: 16,
-  worksheets: 1,
-  attachments: 7,
+  attachments: 5,
 }
 
 export function AppShell({ activeTopicTab, activeView, children, onLogout, onTopicTabChange, onViewChange, role, selectedTopic, state }: AppShellProps) {
@@ -177,7 +175,12 @@ function TopicSidebarProgress({
   state: AppState
 }) {
   const completion = getModuleCompletion(state, selectedTopic)
-  const sectionByTab = new Map(completion.sections.map((section) => [getTopicTabForCompletionLabel(section.label), section]))
+  const sectionByTab = new Map<BankTab, (typeof completion.sections)[number]>()
+  completion.sections.forEach((section) => {
+    const tab = getTopicTabForCompletionLabel(section.label)
+    const previous = sectionByTab.get(tab)
+    sectionByTab.set(tab, previous ? { ...section, complete: previous.complete && section.complete, missing: [...previous.missing, ...section.missing] } : section)
+  })
 
   if (isCollapsed) {
     return (
@@ -258,7 +261,7 @@ function getTopicTabForCompletionLabel(label: string): BankTab {
   if (label === 'Kompetensi & Tujuan') return 'competencies'
   if (label === 'Aktivitas Pembelajaran') return 'activities'
   if (label === 'Asesmen & Rubrik') return 'assessments'
-  if (label === 'LKPD') return 'worksheets'
+  if (label === 'LKPD') return 'attachments'
   return 'attachments'
 }
 

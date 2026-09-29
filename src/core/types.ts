@@ -191,6 +191,7 @@ export type Worksheet = {
   questions: string
   answerArea: string
   answerKey: string
+  content?: string
 }
 
 export type GlossaryTerm = {
@@ -212,9 +213,16 @@ export type ReadingSection = {
   content: string
 }
 
+export type CustomAppendixSection = {
+  id: string
+  title: string
+  content: string
+}
+
 export type ModuleAppendices = {
   readingMaterials: string
   readingSections: ReadingSection[]
+  customSections: CustomAppendixSection[]
   learningMedia: string
   assessmentInstruments: string
   glossary: GlossaryTerm[]
@@ -258,4 +266,4 @@ export type AppState = {
   drafts: AdministrationDraft[]
 }
 
-export type BankTab = 'module-info' | 'competencies' | 'activities' | 'assessments' | 'worksheets' | 'attachments'
+export type BankTab = 'module-info' | 'competencies' | 'activities' | 'assessments' | 'attachments'

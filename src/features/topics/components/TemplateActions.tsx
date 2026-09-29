@@ -132,6 +132,7 @@ function applyPjokTemplate(state: AppState, topic: LearningTopic): AppState {
       [topic.id]: {
         ...mergeTextFields(appendices, getTemplateAppendices(topic)),
         readingSections: appendices?.readingSections.length ? appendices.readingSections : getTemplateAppendices(topic).readingSections,
+        customSections: appendices?.customSections ?? [],
         glossary: appendices?.glossary.length ? appendices.glossary : getTemplateAppendices(topic).glossary,
         files: appendices?.files ?? [],
       },
@@ -371,6 +372,7 @@ function getTemplateAppendices(topic: LearningTopic): ModuleAppendices {
       { id: createId('reading'), title: `Pengertian ${topic.title}`, content: `${topic.title} adalah materi PJOK yang membantu peserta didik mengembangkan keterampilan gerak, kebugaran, dan sikap sportif.` },
       { id: createId('reading'), title: 'Langkah Pembelajaran Gerak', content: 'Gerak dilakukan secara bertahap mulai dari pemanasan, demonstrasi, latihan individu, latihan kelompok, permainan sederhana, pendinginan, dan refleksi.' },
     ],
+    customSections: [],
     learningMedia: 'Gambar gerak, video pembelajaran, demonstrasi guru, dan alat PJOK yang relevan.',
     assessmentInstruments: 'Instrumen penilaian mencakup observasi sikap, pengetahuan, praktik, rubrik kelompok, dan rubrik individu.',
     glossary: [

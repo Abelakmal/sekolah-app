@@ -3,6 +3,7 @@ import type { AppState, LearningTopic, ModuleAppendices } from './types'
 export const fallbackModuleAppendices: ModuleAppendices = {
   readingMaterials: '',
   readingSections: [],
+  customSections: [],
   learningMedia: '',
   assessmentInstruments: '',
   glossary: [],
@@ -14,6 +15,7 @@ export function getModuleAppendices(state: AppState, topic: LearningTopic): Modu
     ...fallbackModuleAppendices,
     ...state.moduleAppendices[topic.id],
     readingSections: state.moduleAppendices[topic.id]?.readingSections ?? [],
+    customSections: state.moduleAppendices[topic.id]?.customSections ?? [],
     glossary: state.moduleAppendices[topic.id]?.glossary ?? [],
     files: state.moduleAppendices[topic.id]?.files ?? [],
   }

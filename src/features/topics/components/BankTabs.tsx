@@ -31,14 +31,12 @@ import { AssessmentsTab } from "./AssessmentsTab";
 import { AutoSavedNotice, BankSection } from "./BankSection";
 import { CrudSection } from "./CrudSection";
 import { TemplateActions } from "./TemplateActions";
-import { WorksheetsTab } from "./WorksheetsTab";
 
 const bankLabels: Record<BankTab, string> = {
   "module-info": "Informasi Modul",
   competencies: "Kompetensi & Tujuan",
   activities: "Aktivitas Pembelajaran",
   assessments: "Asesmen & Rubrik",
-  worksheets: "LKPD",
   attachments: "Lampiran",
 };
 
@@ -228,15 +226,6 @@ function BankTabContent({
         topic={topic}
       />
     );
-  if (tab === "worksheets")
-    return (
-      <WorksheetsTab
-        query={query}
-        setState={setState}
-        state={state}
-        topic={topic}
-      />
-    );
   return (
     <AppendicesTab
       query={query}
@@ -283,7 +272,6 @@ function isSearchableTab(tab: BankTab) {
     tab === "competencies" ||
     tab === "activities" ||
     tab === "assessments" ||
-    tab === "worksheets" ||
     tab === "attachments"
   );
 }

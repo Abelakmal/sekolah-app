@@ -20,7 +20,7 @@ function toEditorHtml(value: string) {
     .join('')
 }
 
-export function RichTextEditor({ label, onChange, value }: { label: string; onChange: (value: string) => void; value: string }) {
+export function RichTextEditor({ id, label, onChange, value }: { id?: string; label: string; onChange: (value: string) => void; value: string }) {
   const editorRef = useRef<HTMLDivElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const selectionRef = useRef<Range | null>(null)
@@ -156,10 +156,10 @@ export function RichTextEditor({ label, onChange, value }: { label: string; onCh
   }
 
   return (
-    <div>
+    <div className="min-w-0 max-w-full" id={id}>
       <p className="mb-2 text-sm font-semibold text-slate-700">{label}</p>
-      <div className="overflow-hidden rounded-md border border-slate-300 bg-white focus-within:border-blue-500 focus-within:ring-3 focus-within:ring-blue-100">
-        <div className="flex flex-wrap gap-1 border-b border-slate-200 bg-slate-50 p-2">
+      <div className="rich-editor-shell min-w-0 max-w-full overflow-hidden rounded-md border border-slate-300 bg-white focus-within:border-blue-500 focus-within:ring-3 focus-within:ring-blue-100">
+        <div className="rich-editor-toolbar min-w-0 max-w-full flex flex-wrap gap-1 border-b border-slate-200 bg-slate-50 p-2">
           <EditorButton label="Tebal" onClick={() => command('bold')}><Bold size={15} /></EditorButton>
           <EditorButton label="Miring" onClick={() => command('italic')}><Italic size={15} /></EditorButton>
           <EditorButton label="Subjudul" onClick={() => command('formatBlock', 'h3')}>H</EditorButton>
@@ -180,16 +180,18 @@ export function RichTextEditor({ label, onChange, value }: { label: string; onCh
           <EditorButton label="Sisipkan gambar" onClick={() => imageInputRef.current?.click()}><ImagePlus size={15} /></EditorButton>
           <input accept="image/*" className="hidden" onChange={(event) => void addImage(event.target.files?.[0])} ref={imageInputRef} type="file" />
         </div>
-        <div
-          className="min-h-48 px-4 py-3 text-sm leading-6 text-slate-900 [&_a]:text-blue-700 [&_a]:underline [&_h3]:my-3 [&_h3]:font-bold [&_img]:my-3 [&_img]:max-h-80 [&_img]:max-w-full [&_img]:rounded [&_li]:ml-5 [&_ol]:my-2 [&_table]:my-3 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-slate-400 [&_td]:p-2 [&_th]:border [&_th]:border-slate-400 [&_th]:bg-slate-100 [&_th]:p-2 [&_ul]:my-2"
-          contentEditable
-          data-placeholder="Tulis kegiatan, daftar langkah, sisipkan gambar atau video..."
-          onInput={emitChange}
-          onKeyUp={rememberSelection}
-          onMouseUp={rememberSelection}
-          ref={editorRef}
-          suppressContentEditableWarning
-        />
+        <div className="rich-editor-content-viewport">
+          <div
+            className="rich-editor-body min-h-48 px-4 py-3 text-sm leading-6 text-slate-900 [&_a]:text-blue-700 [&_a]:underline [&_h3]:my-3 [&_h3]:font-bold [&_img]:my-3 [&_img]:max-h-80 [&_img]:max-w-full [&_img]:rounded [&_li]:ml-5 [&_ol]:my-2 [&_table]:my-3 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-slate-400 [&_td]:p-2 [&_th]:border [&_th]:border-slate-400 [&_th]:bg-slate-100 [&_th]:p-2 [&_ul]:my-2"
+            contentEditable
+            data-placeholder="Tulis kegiatan, daftar langkah, sisipkan gambar atau video..."
+            onInput={emitChange}
+            onKeyUp={rememberSelection}
+            onMouseUp={rememberSelection}
+            ref={editorRef}
+            suppressContentEditableWarning
+          />
+        </div>
       </div>
       <p className="mt-1 text-xs text-slate-500">Gambar maksimal 2 MB. Tabel dapat ditambah dari toolbar; letakkan kursor di dalam sel sebelum menambah atau menghapus baris/kolom.</p>
     </div>

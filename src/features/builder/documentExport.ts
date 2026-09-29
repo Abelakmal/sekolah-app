@@ -613,16 +613,6 @@ export function buildAdministrationDocumentHtml({
       figure { margin: 7px auto; max-width: 150mm; text-align: center; }
       figure img { display: block; height: auto; margin: 0 auto; max-height: 105mm; max-width: 100%; }
       figcaption { font-size: 9.5pt; font-style: italic; margin-top: 3px; }
-      @media screen and (max-width: 900px) {
-        body {
-          width: 100%;
-          min-height: auto;
-          padding: 18px;
-          box-shadow: none;
-        }
-        .cover { min-height: 80vh; padding-top: 80px; }
-        .cover-box { min-width: 0; width: 100%; }
-      }
       @media print {
         html { background: #ffffff; }
         body {

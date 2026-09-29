@@ -56,6 +56,12 @@ const completionItemTotals: Record<BankTab, number> = {
 
 export function AppShell({ activeTopicTab, activeView, children, onLogout, onTopicTabChange, onViewChange, role, selectedTopic, state }: AppShellProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  function changeView(view: AppView) {
+    setIsMobileMenuOpen(false)
+    onViewChange(view)
+  }
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-950">
@@ -95,7 +101,7 @@ export function AppShell({ activeTopicTab, activeView, children, onLogout, onTop
                       isSidebarCollapsed ? 'justify-center' : 'gap-3',
                       active ? 'bg-blue-700 text-white' : 'text-blue-100 hover:bg-white/10 hover:text-white',
                     )}
-                    onClick={() => onViewChange(item.id)}
+                    onClick={() => changeView(item.id)}
                     title={item.label}
                     type="button"
                   >
@@ -125,13 +131,33 @@ export function AppShell({ activeTopicTab, activeView, children, onLogout, onTop
         </div>
       </aside>
 
-      <main className={className('transition-[padding] duration-200', isSidebarCollapsed ? 'md:pl-20' : 'md:pl-64')}>
+      {role === 'teacher' && isMobileMenuOpen && (
+        <div className="fixed inset-0 z-40 md:hidden" role="dialog" aria-label="Navigasi utama">
+          <button aria-label="Tutup navigasi" className="absolute inset-0 bg-slate-950/45" onClick={() => setIsMobileMenuOpen(false)} type="button" />
+          <aside className="relative flex h-full w-[min(19rem,85vw)] flex-col bg-blue-950 text-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 px-5 py-5">
+              <div className="flex items-center gap-3"><div className="grid size-10 place-items-center rounded-lg bg-sky-500"><BriefcaseBusiness size={21} /></div><div><p className="text-sm font-semibold">Administrasi Guru</p><p className="text-xs text-blue-100">Bank PJOK SD</p></div></div>
+              <button className="icon-button border-white/20 bg-white/10 text-white" onClick={() => setIsMobileMenuOpen(false)} type="button"><PanelLeftClose size={18} /></button>
+            </div>
+            <nav className="grid gap-1 overflow-y-auto px-3 py-4">
+              {navItems.filter((item) => item.roles.includes(role)).map((item) => {
+                const Icon = item.icon
+                const active = activeView === item.id || (item.id === 'topics' && activeView === 'topic-detail')
+                return <div className="grid gap-2" key={item.id}><button className={className('flex h-11 items-center gap-3 rounded-md px-3 text-left text-sm font-medium', active ? 'bg-blue-700 text-white' : 'text-blue-100 hover:bg-white/10')} onClick={() => changeView(item.id)} type="button"><Icon size={18} />{item.label}</button>{item.id === 'topics' && activeView === 'topic-detail' && selectedTopic && <TopicSidebarProgress activeTopicTab={activeTopicTab} isCollapsed={false} onTopicTabChange={(tab) => { onTopicTabChange(tab); setIsMobileMenuOpen(false) }} selectedTopic={selectedTopic} state={state} />}</div>
+              })}
+            </nav>
+            <div className="mt-auto border-t border-white/10 p-4"><p className="truncate text-sm font-semibold">{state.teacher.name}</p><p className="text-xs text-blue-100">Guru PJOK</p></div>
+          </aside>
+        </div>
+      )}
+
+      <main className={className('min-w-0 overflow-x-hidden transition-[padding] duration-200', isSidebarCollapsed ? 'md:pl-20' : 'md:pl-64')}>
         <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <button className="grid size-9 place-items-center rounded-md border border-slate-200 md:hidden" type="button">
+              {role === 'teacher' && <button aria-expanded={isMobileMenuOpen} aria-label="Buka navigasi" className="grid size-9 place-items-center rounded-md border border-slate-200 md:hidden" onClick={() => setIsMobileMenuOpen(true)} type="button">
                 <Menu size={18} />
-              </button>
+              </button>}
               <button
                 className="hidden size-9 place-items-center rounded-md border border-blue-900/30 bg-blue-950 text-blue-100 hover:bg-blue-900 hover:text-white md:grid"
                 onClick={() => setIsSidebarCollapsed((current) => !current)}
@@ -157,7 +183,7 @@ export function AppShell({ activeTopicTab, activeView, children, onLogout, onTop
           </div>
         </header>
 
-        <div className={className('px-4 py-5 sm:px-6', activeView === 'topic-detail' ? 'lg:px-5' : 'lg:px-8')}>{children}</div>
+        <div className={className('min-w-0 px-4 py-5 sm:px-6', activeView === 'topic-detail' ? 'lg:px-5' : 'lg:px-8')}>{children}</div>
       </main>
     </div>
   )

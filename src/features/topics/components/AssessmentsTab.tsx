@@ -58,19 +58,22 @@ export function AssessmentsTab({ setState, state, topic }: AssessmentsTabProps) 
           </div>
           <AutoSavedNotice />
         </div>
-        <BankSection defaultOpen isComplete={assessmentComplete} title="Diagnostik, Formatif, dan Sumatif">
+        <BankSection defaultOpen id="assessments-learning" isComplete={assessmentComplete} title="Diagnostik, Formatif, dan Sumatif">
           <div className="grid gap-6">
             <RichTextEditor
+              id="assessment-field-0"
               label="Asesmen Diagnostik"
               onChange={(diagnosticAssessment) => updateModuleAssessments({ diagnosticAssessment })}
               value={moduleAssessments.diagnosticAssessment}
             />
             <RichTextEditor
+              id="assessment-field-1"
               label="Asesmen Formatif"
               onChange={(formativeAssessment) => updateModuleAssessments({ formativeAssessment })}
               value={moduleAssessments.formativeAssessment}
             />
             <RichTextEditor
+              id="assessment-field-2"
               label="Asesmen Sumatif"
               onChange={(summativeAssessment) => updateModuleAssessments({ summativeAssessment })}
               value={moduleAssessments.summativeAssessment}
@@ -80,9 +83,10 @@ export function AssessmentsTab({ setState, state, topic }: AssessmentsTabProps) 
       </section>
 
       <section className="rounded-lg border border-slate-200 bg-white p-5">
-        <BankSection isComplete={moduleAssessments.groupRubric.length > 0 && Boolean(moduleAssessments.groupRubricContext)} title="Rubrik Penilaian Kelompok">
+        <BankSection id="assessments-group" isComplete={moduleAssessments.groupRubric.length > 0 && Boolean(moduleAssessments.groupRubricContext)} title="Rubrik Penilaian Kelompok">
           <div className="mb-5 grid gap-5">
             <RichTextEditor
+              id="assessment-field-3"
               label="Konteks atau Instruksi Rubrik Kelompok"
               onChange={(groupRubricContext) => updateModuleAssessments({ groupRubricContext })}
               value={moduleAssessments.groupRubricContext}
@@ -95,51 +99,58 @@ export function AssessmentsTab({ setState, state, topic }: AssessmentsTabProps) 
             title="Aspek Penilaian Kelompok"
           />
           <div className="mt-5">
-            <RichTextEditor label="Catatan Guru" onChange={(teacherNotes) => updateModuleAssessments({ teacherNotes })} value={moduleAssessments.teacherNotes} />
+            <RichTextEditor id="assessment-field-4" label="Catatan Guru" onChange={(teacherNotes) => updateModuleAssessments({ teacherNotes })} value={moduleAssessments.teacherNotes} />
           </div>
         </BankSection>
       </section>
-      <RubricEditor
-        onChange={(individualRubric) => updateModuleAssessments({ individualRubric })}
-        rows={moduleAssessments.individualRubric}
-        title="Rubrik Individu"
-      />
+      <div id="assessments-individual">
+        <RubricEditor
+          onChange={(individualRubric) => updateModuleAssessments({ individualRubric })}
+          rows={moduleAssessments.individualRubric}
+          title="Rubrik Individu"
+        />
+      </div>
 
       <section className="rounded-lg border border-slate-200 bg-white p-5">
-        <BankSection isComplete={individualFormatComplete} title="Rubrik Individu dan Penilaian Praktik Sumatif">
+        <BankSection id="assessments-practice" isComplete={individualFormatComplete} title="Rubrik Individu dan Penilaian Praktik Sumatif">
           <div className="mb-4 flex justify-end">
             <AutoSavedNotice />
           </div>
           <div className="grid gap-6">
             <RichTextEditor
+              id="assessment-field-5"
               label="Tujuan Rubrik Individu"
               onChange={(individualRubricObjective) => updateModuleAssessments({ individualRubricObjective })}
               value={moduleAssessments.individualRubricObjective}
             />
             <RichTextEditor
+              id="assessment-field-6"
               label="Waktu Pelaksanaan Rubrik Individu"
               onChange={(individualRubricTiming) => updateModuleAssessments({ individualRubricTiming })}
               value={moduleAssessments.individualRubricTiming}
             />
             <RichTextEditor
+              id="assessment-field-7"
               label="Skala Nilai Rubrik Individu"
               onChange={(individualScoreScale) => updateModuleAssessments({ individualScoreScale })}
               value={moduleAssessments.individualScoreScale}
             />
-            <RichTextEditor label="Tujuan Penilaian Praktik" onChange={(practiceObjective) => updateModuleAssessments({ practiceObjective })} value={moduleAssessments.practiceObjective} />
-            <RichTextEditor label="Waktu Pelaksanaan Praktik" onChange={(practiceTiming) => updateModuleAssessments({ practiceTiming })} value={moduleAssessments.practiceTiming} />
-            <RichTextEditor label="Instrumen atau Tugas Praktik" onChange={(practiceTask) => updateModuleAssessments({ practiceTask })} value={moduleAssessments.practiceTask} />
+            <RichTextEditor id="assessment-field-8" label="Tujuan Penilaian Praktik" onChange={(practiceObjective) => updateModuleAssessments({ practiceObjective })} value={moduleAssessments.practiceObjective} />
+            <RichTextEditor id="assessment-field-9" label="Waktu Pelaksanaan Praktik" onChange={(practiceTiming) => updateModuleAssessments({ practiceTiming })} value={moduleAssessments.practiceTiming} />
+            <RichTextEditor id="assessment-field-10" label="Instrumen atau Tugas Praktik" onChange={(practiceTask) => updateModuleAssessments({ practiceTask })} value={moduleAssessments.practiceTask} />
             <NumberField
               label="Total Skor Praktik"
               onChange={(practiceTotalScore) => updateModuleAssessments({ practiceTotalScore })}
               value={moduleAssessments.practiceTotalScore}
             />
             <RichTextEditor
+              id="assessment-field-11"
               label="Kriteria Penilaian Praktik"
               onChange={(practiceCriteria) => updateModuleAssessments({ practiceCriteria })}
               value={moduleAssessments.practiceCriteria}
             />
             <RichTextEditor
+              id="assessment-field-12"
               label="Refleksi Diri Siswa (Sumatif)"
               onChange={(studentSelfReflection) => updateModuleAssessments({ studentSelfReflection })}
               value={moduleAssessments.studentSelfReflection}

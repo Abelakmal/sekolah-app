@@ -13,7 +13,7 @@ type CreateTeacherRequest = {
   password: string
 }
 
-type UpdateTeacherRequest = Omit<CreateTeacherRequest, 'password'>
+type UpdateTeacherRequest = Omit<CreateTeacherRequest, 'password'> & { password?: string }
 
 async function requireAdmin(request: Request) {
   const authHeader = request.headers.get('authorization')
@@ -163,10 +163,14 @@ export async function PATCH(request: Request) {
   const email = payload.email?.trim().toLowerCase()
   const identityNumber = payload.identityNumber?.trim() ?? ''
   const identityType = payload.identityType
+  const password = payload.password?.trim()
   const classes = payload.classes?.filter((grade) => Number.isInteger(grade) && grade >= 1 && grade <= 6) ?? []
 
   if (!id || !name || !email || !identityType || classes.length === 0) {
     return NextResponse.json({ error: 'Data guru belum lengkap.' }, { status: 400 })
+  }
+  if (password && password.length < 6) {
+    return NextResponse.json({ error: 'Password baru minimal 6 karakter.' }, { status: 400 })
   }
 
   const { data: currentTeacher, error: currentError } = await admin.adminClient
@@ -183,6 +187,7 @@ export async function PATCH(request: Request) {
     const { error: authUpdateError } = await admin.adminClient.auth.admin.updateUserById(currentTeacher.profile_id, {
       email,
       user_metadata: { name, role: 'teacher' },
+      ...(password ? { password } : {}),
     })
 
     if (authUpdateError) {

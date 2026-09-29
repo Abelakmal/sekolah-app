@@ -26,6 +26,10 @@ import {
   maxAttachmentBytes,
   readAttachment,
 } from "../../../core/utils";
+import { getModuleActivities } from "../../../core/moduleActivities";
+import { getModuleAppendices } from "../../../core/moduleAppendices";
+import { getModuleAssessments } from "../../../core/moduleAssessments";
+import { getModuleWorksheets } from "../../../core/moduleWorksheets";
 import {
   SearchField,
   NumberField,
@@ -50,6 +54,14 @@ const bankLabels: Record<BankTab, string> = {
 };
 
 const bankTabs = Object.keys(bankLabels) as BankTab[];
+
+type ModuleSearchResult = {
+  id: string;
+  preview: string;
+  tab: BankTab;
+  targetId: string;
+  title: string;
+};
 
 function TextArea({
   label,
@@ -95,6 +107,7 @@ export function TopicDetailPanel({
   const [query, setQuery] = useState("");
   const [isRemoteDataReady, setIsRemoteDataReady] = useState(false);
   const info = getModuleInfo(state, selectedTopic);
+  const searchResults = getModuleSearchResults(state, selectedTopic, info, query);
   const activeTabIndex = bankTabs.indexOf(activeTab);
   const previousTab = bankTabs[activeTabIndex - 1];
   const nextTab = bankTabs[activeTabIndex + 1];
@@ -102,6 +115,27 @@ export function TopicDetailPanel({
   useEffect(() => {
     setQuery("");
   }, [activeTab]);
+
+  function openSearchResult(result: ModuleSearchResult) {
+    setQuery("");
+    onTopicTabChange(result.tab);
+    const sectionId = getSearchSectionId(result.targetId);
+
+    let attempts = 0;
+    const scrollToResult = () => {
+      if (document.getElementById(sectionId)) {
+        window.dispatchEvent(new CustomEvent("bank-search-focus", { detail: { targetId: sectionId } }));
+      }
+      const target = document.getElementById(result.targetId);
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+      attempts += 1;
+      if (attempts < 6) window.setTimeout(scrollToResult, 80);
+    };
+    window.setTimeout(scrollToResult, 80);
+  }
 
   useEffect(() => {
     let isCurrent = true;
@@ -224,27 +258,57 @@ export function TopicDetailPanel({
       </aside>
 
       <section className="min-w-0 grid gap-3 xl:min-h-0 xl:grid-rows-[auto_1fr] xl:overflow-hidden">
-        {isSearchableTab(activeTab) && (
           <div className="rounded-lg border border-slate-200 bg-white p-3 xl:shrink-0">
             <div className="max-w-lg">
               <SearchField
                 className="input h-9 pl-9 text-sm"
                 onChange={setQuery}
-                placeholder={`Cari ${bankLabels[activeTab].toLowerCase()}...`}
+                placeholder="Cari seluruh isi modul..."
                 value={query}
               />
+              {query.trim().length >= 2 && (
+                <div className="relative">
+                  <div className="absolute z-30 mt-2 max-h-80 w-full overflow-y-auto rounded-lg border border-slate-200 bg-white p-1 shadow-lg">
+                    {searchResults.length > 0 ? (
+                      searchResults.map((result) => (
+                        <button
+                          className="block w-full rounded-md px-3 py-2 text-left hover:bg-blue-50"
+                          key={result.id}
+                          onClick={() => openSearchResult(result)}
+                          type="button"
+                        >
+                          <span className="flex items-center justify-between gap-3">
+                            <span className="min-w-0 truncate text-sm font-semibold text-slate-900">
+                              {result.title}
+                            </span>
+                            <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                              {bankLabels[result.tab]}
+                            </span>
+                          </span>
+                          <span className="mt-0.5 block line-clamp-2 text-xs leading-5 text-slate-500">
+                            {result.preview}
+                          </span>
+                        </button>
+                      ))
+                    ) : (
+                      <p className="px-3 py-4 text-sm text-slate-500">Tidak ada hasil di modul ini.</p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        )}
 
         <div className="min-w-0 min-h-0 xl:overflow-y-auto xl:pr-1">
-          <BankTabContent
-            query={query}
-            setState={setState}
-            state={state}
-            tab={activeTab}
-            topic={selectedTopic}
-          />
+          <div className="min-w-0 max-w-full overflow-x-hidden" id={`bank-tab-${activeTab}`}>
+            <BankTabContent
+              query={query}
+              setState={setState}
+              state={state}
+              tab={activeTab}
+              topic={selectedTopic}
+            />
+          </div>
         </div>
       </section>
     </div>
@@ -333,13 +397,167 @@ function getModuleCompetency(
   return state.moduleCompetencies[topic.id] ?? fallbackModuleCompetency;
 }
 
-function isSearchableTab(tab: BankTab) {
-  return (
-    tab === "competencies" ||
-    tab === "activities" ||
-    tab === "assessments" ||
-    tab === "attachments"
-  );
+function getModuleSearchResults(
+  state: AppState,
+  topic: LearningTopic,
+  moduleInfo: ModuleInfo,
+  query: string,
+): ModuleSearchResult[] {
+  const normalizedQuery = query.trim().toLocaleLowerCase("id-ID");
+  if (normalizedQuery.length < 2) return [];
+
+  const results: ModuleSearchResult[] = [];
+  const add = (tab: BankTab, title: string, value: string | string[], id: string) => {
+    const preview = searchPlainText(Array.isArray(value) ? value.join(" ") : value);
+    const titleMatches = title.toLocaleLowerCase("id-ID").includes(normalizedQuery);
+    if (!titleMatches && !preview.toLocaleLowerCase("id-ID").includes(normalizedQuery)) return;
+    results.push({
+      id,
+      preview: preview || "Bagian ini belum memiliki isi.",
+      tab,
+      targetId: getSearchTargetId(tab, id),
+      title,
+    });
+  };
+
+  const infoFields: Array<[string, string]> = [
+    ["Tahun Ajaran", moduleInfo.academicYear],
+    ["Mata Pelajaran", moduleInfo.subject],
+    ["Fase", moduleInfo.phase],
+    ["Materi Pokok", moduleInfo.mainMaterial],
+    ["Sub Materi", moduleInfo.subMaterial],
+    ["Bab/Pertemuan", moduleInfo.chapterMeeting],
+    ["Alokasi Waktu", moduleInfo.timeAllocation],
+    ["Target Peserta Didik", moduleInfo.targetStudents],
+    ["Model Pembelajaran", moduleInfo.learningModel],
+    ["Metode Pembelajaran", moduleInfo.learningMethods],
+    ["Strategi Pembelajaran Berdiferensiasi", moduleInfo.differentiationStrategy],
+    ["Media", moduleInfo.media],
+    ["Alat dan Bahan", moduleInfo.toolsAndMaterials],
+    ["Sumber Belajar", moduleInfo.learningResources],
+    ["Lapangan/Tempat Praktik", moduleInfo.practiceArea],
+    ["Peralatan PJOK", moduleInfo.sportEquipment],
+    ["Pengayaan", moduleInfo.enrichment],
+    ["Remedial", moduleInfo.remedial],
+  ];
+  infoFields.forEach(([title, value], index) => add("module-info", title, value, `info-${index}`));
+
+  const competency = getModuleCompetency(state, topic);
+  [
+    ["Komponen Awal", competency.initialCompetency],
+    ["Capaian Pembelajaran", competency.learningAchievements],
+    ["Pemahaman Bermakna", competency.meaningfulUnderstanding],
+    ["Profil Pelajar Pancasila", competency.pancasilaProfiles],
+    ["Pertanyaan Pemantik", competency.triggerQuestions],
+    ["Asesmen Diagnostik Non-Kognitif", competency.diagnosticQuestions],
+    ["Persiapan Afektif", competency.affectivePreparation],
+    ["Persiapan Kognitif", competency.cognitivePreparation],
+    ["Persiapan Psikomotor", competency.psychomotorPreparation],
+  ].forEach(([title, value], index) => add("competencies", title as string, value as string | string[], `competency-${index}`));
+  state.objectives.filter((item) => item.topicId === topic.id).forEach((item) => add("competencies", `Tujuan: ${item.title}`, item.description, item.id));
+  state.materials.filter((item) => item.topicId === topic.id).forEach((item) => add("competencies", `Materi: ${item.title}`, `${item.description} ${item.videoUrl ?? ""} ${item.attachment?.name ?? ""}`, item.id));
+
+  const activities = getModuleActivities(state, topic);
+  [
+    ["Kegiatan Pendahuluan", activities.opening.steps],
+    ["Kegiatan Inti", activities.core.steps],
+    ["Kegiatan Penutup", activities.closing.steps],
+    ["Diferensiasi Konten", activities.contentDifferentiation],
+    ["Diferensiasi Proses", activities.processDifferentiation],
+    ["Diferensiasi Lingkungan", activities.environmentDifferentiation],
+    ["Refleksi Guru", activities.teacherReflection],
+    ["Refleksi Peserta Didik", activities.studentReflection],
+  ].forEach(([title, value], index) => add("activities", title, value, `activity-${index}`));
+  state.activities.filter((item) => item.topicId === topic.id).forEach((item) => add("activities", `Aktivitas: ${item.name}`, item.steps, item.id));
+
+  const assessments = getModuleAssessments(state, topic);
+  [
+    ["Asesmen Diagnostik", assessments.diagnosticAssessment],
+    ["Asesmen Formatif", assessments.formativeAssessment],
+    ["Asesmen Sumatif", assessments.summativeAssessment],
+    ["Konteks Rubrik Kelompok", assessments.groupRubricContext],
+    ["Catatan Guru", assessments.teacherNotes],
+    ["Tujuan Rubrik Individu", assessments.individualRubricObjective],
+    ["Waktu Rubrik Individu", assessments.individualRubricTiming],
+    ["Skala Nilai Rubrik Individu", assessments.individualScoreScale],
+    ["Tujuan Penilaian Praktik", assessments.practiceObjective],
+    ["Waktu Penilaian Praktik", assessments.practiceTiming],
+    ["Instrumen/Tugas Praktik", assessments.practiceTask],
+    ["Kriteria Penilaian Praktik", assessments.practiceCriteria],
+    ["Refleksi Diri Siswa", assessments.studentSelfReflection],
+  ].forEach(([title, value], index) => add("assessments", title, value, `assessment-${index}`));
+  assessments.groupRubric.forEach((row) => add("assessments", `Rubrik Kelompok: ${row.aspect}`, `${row.excellent} ${row.good} ${row.fair} ${row.needsImprovement}`, row.id));
+  assessments.individualRubric.forEach((row) => add("assessments", `Rubrik Individu: ${row.aspect}`, `${row.excellent} ${row.good} ${row.fair} ${row.needsImprovement}`, row.id));
+
+  const appendices = getModuleAppendices(state, topic);
+  add("attachments", "Lampiran", "Bahan bacaan, media pembelajaran, LKPD, instrumen penilaian, dan dokumen pendukung.", "attachments-tab");
+  add("attachments", "Lampiran 1 — Bahan Bacaan", appendices.readingMaterials, "reading-materials");
+  add("attachments", "Lampiran 2 — Media Pembelajaran", appendices.learningMedia, "learning-media");
+  add("attachments", "Lampiran 4 — Instrumen Penilaian", appendices.assessmentInstruments, "assessment-instruments");
+  appendices.readingSections.forEach((item) => add("attachments", `Lampiran 1 — Bahan Bacaan: ${item.title}`, item.content, item.id));
+  getModuleWorksheets(state, topic).forEach((item) => add("attachments", `Lampiran 3 — LKPD ${item.type}: ${item.title}`, `${item.content ?? ""} ${item.instructions} ${item.questions}`, item.id));
+  appendices.glossary.forEach((item) => add("attachments", `Lampiran 5 — Glosarium: ${item.term}`, item.definition, item.id));
+  appendices.customSections.forEach((item) => add("attachments", `Lampiran: ${item.title}`, item.content, item.id));
+  appendices.files.forEach((item) => add("attachments", `Lampiran — File: ${item.title}`, `${item.description} ${item.attachment?.name ?? ""}`, item.id));
+
+  return results.slice(0, 12);
+}
+
+function searchPlainText(value: string) {
+  return value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getSearchTargetId(tab: BankTab, resultId: string) {
+  if (tab === "module-info") {
+    const index = Number(resultId.replace("info-", ""));
+    if (index <= 7) return "module-info-identity";
+    if (index <= 10) return "module-info-strategy";
+    if (index <= 15) return "module-info-facilities";
+    return "module-info-follow-up";
+  }
+  if (tab === "competencies") {
+    if (resultId.startsWith("objective")) return "competencies-objectives";
+    if (resultId.startsWith("material")) return "competencies-objectives";
+    return "competencies-core";
+  }
+  if (tab === "activities") {
+    if (resultId === "activity-0") return "activities-opening";
+    if (resultId === "activity-1") return "activities-core";
+    if (resultId === "activity-2") return "activities-closing";
+    if (resultId === "activity-6" || resultId === "activity-7") return "activities-reflection";
+    return "bank-tab-activities";
+  }
+  if (tab === "assessments") {
+    const index = Number(resultId.replace("assessment-", ""));
+    if (Number.isInteger(index) && index >= 0 && index <= 12) return `assessment-field-${index}`;
+    if (index <= 2) return "assessments-learning";
+    if (index <= 4 || resultId.startsWith("rubric-group")) return "assessments-group";
+    if (index <= 7 || resultId.startsWith("rubric-individual")) return "assessments-individual";
+    return "assessments-practice";
+  }
+  if (resultId === "reading-materials" || resultId.startsWith("reading-")) return "attachments-reading";
+  if (resultId === "learning-media") return "attachments-media";
+  if (resultId === "assessment-instruments") return "attachments-instruments";
+  if (resultId.startsWith("worksheet")) return "attachments-worksheets";
+  if (resultId.startsWith("glossary")) return "attachments-glossary";
+  if (resultId.startsWith("appendix-section")) return "attachments-custom";
+  if (resultId.startsWith("appendix-file")) return "attachments-files";
+  return "bank-tab-attachments";
+}
+
+function getSearchSectionId(targetId: string) {
+  if (targetId.startsWith("assessment-field-")) {
+    const index = Number(targetId.replace("assessment-field-", ""));
+    if (index <= 2) return "assessments-learning";
+    if (index <= 4) return "assessments-group";
+    if (index <= 7) return "assessments-practice";
+    return "assessments-practice";
+  }
+  return targetId;
 }
 
 function InfoChip({
@@ -453,6 +671,7 @@ function ModuleInfoTab({
       <div className="grid gap-3">
         <BankSection
           defaultOpen
+          id="module-info-identity"
           isComplete={identityComplete}
           title="Identitas dan Materi Modul"
         >
@@ -525,7 +744,8 @@ function ModuleInfoTab({
         </BankSection>
 
         <BankSection
-          defaultOpen={!identityComplete}
+          defaultOpen
+          id="module-info-strategy"
           isComplete={strategyComplete}
           title="Strategi Pembelajaran"
         >
@@ -573,7 +793,7 @@ function ModuleInfoTab({
           </div>
         </BankSection>
 
-        <BankSection isComplete={facilityComplete} title="Sarana dan Prasarana">
+        <BankSection id="module-info-facilities" isComplete={facilityComplete} title="Sarana dan Prasarana">
           <div className="grid gap-6 md:grid-cols-2">
             <TextArea
               label="Media"
@@ -610,6 +830,7 @@ function ModuleInfoTab({
         </BankSection>
 
         <BankSection
+          id="module-info-follow-up"
           isComplete={followUpComplete}
           title="Pengayaan, Remedial, dan Pengesahan"
         >
@@ -679,6 +900,7 @@ function CompetenciesTab({ query, setState, state, topic }: BankTabProps) {
         </div>
         <BankSection
           defaultOpen
+          id="competencies-core"
           isComplete={coreComplete}
           title="Kompetensi, Capaian, dan Persiapan"
         >
@@ -756,12 +978,14 @@ function CompetenciesTab({ query, setState, state, topic }: BankTabProps) {
         values={competency.diagnosticQuestions}
       />
 
-      <ObjectivesTab
-        query={query}
-        setState={setState}
-        state={state}
-        topic={topic}
-      />
+      <div id="competencies-objectives">
+        <ObjectivesTab
+          query={query}
+          setState={setState}
+          state={state}
+          topic={topic}
+        />
+      </div>
     </div>
   );
 }

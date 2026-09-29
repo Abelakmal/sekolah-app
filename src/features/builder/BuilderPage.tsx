@@ -204,7 +204,7 @@ export function BuilderPage({
   }
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[300px_1fr]">
+    <div className="grid min-w-0 gap-5 xl:grid-cols-[300px_minmax(0,1fr)]">
       <aside className="rounded-lg border border-slate-200 bg-white p-4">
         <div className="mb-4">
           <p className="text-sm font-semibold text-slate-900">
@@ -220,7 +220,7 @@ export function BuilderPage({
             {completedCount}/{completion.length} bagian lengkap
           </p>
         </div>
-        <div className="grid gap-1">
+        <div className="grid gap-1 sm:grid-cols-2 xl:grid-cols-1">
           {steps.map((item, index) => {
             const status = completion[index];
             return (
@@ -253,7 +253,7 @@ export function BuilderPage({
         </div>
       </aside>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-5">
+      <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-4 sm:p-5">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm text-slate-500">Penyusun Administrasi</p>
@@ -959,9 +959,11 @@ function ReviewStep({
         </div>
       </section>
       <CompletionGrid completion={completion} />
-      <section className="overflow-hidden rounded-lg border border-slate-200 bg-slate-100 p-3">
+      <section className="min-w-0 max-w-full overflow-x-auto overflow-y-auto rounded-lg border border-slate-200 bg-slate-100 p-3">
         <p className="mb-3 text-sm font-semibold text-slate-700">Preview isi dokumen</p>
-        <iframe className="h-[72vh] min-w-[320px] w-full rounded-md border border-slate-200 bg-white" srcDoc={buildAdministrationDocumentHtml({ selected, state, topic })} title={`Review Administrasi ${topic.title}`} />
+        <div className="w-max min-w-[794px]">
+          <iframe className="h-[72vh] w-[794px] rounded-md border border-slate-200 bg-white" srcDoc={buildAdministrationDocumentHtml({ selected, state, topic })} title={`Review Administrasi ${topic.title}`} />
+        </div>
       </section>
     </div>
   );

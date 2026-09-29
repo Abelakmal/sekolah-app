@@ -14,8 +14,8 @@ export function SearchField({
 }) {
   return (
     <label className="relative block min-w-0">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-      <input className={className ?? 'input pl-9'} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} value={value} />
+      <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+      <input className={`input-with-icon ${className ?? 'input'}`} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} value={value} />
     </label>
   )
 }

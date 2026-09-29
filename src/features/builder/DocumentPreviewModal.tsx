@@ -12,7 +12,7 @@ export function DocumentPreviewModal({
   title: string
 }) {
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/40 px-4">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/40 px-3 sm:px-4">
       <section className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-lg bg-white shadow-xl">
         <div className="flex flex-col gap-3 border-b border-slate-200 p-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
@@ -29,8 +29,10 @@ export function DocumentPreviewModal({
             </button>
           </div>
         </div>
-        <div className="overflow-auto bg-slate-100 p-3 sm:p-4">
-          <iframe className="h-[72vh] min-w-[320px] w-full rounded-md border border-slate-200 bg-white" srcDoc={html} title={`Preview ${title}`} />
+        <div className="min-w-0 max-w-full overflow-x-auto overflow-y-auto bg-slate-100 p-3 sm:p-4">
+          <div className="w-max min-w-[794px]">
+            <iframe className="h-[72vh] w-[794px] rounded-md border border-slate-200 bg-white" srcDoc={html} title={`Preview ${title}`} />
+          </div>
         </div>
       </section>
     </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { CheckCircle2, ChevronDown, Circle } from 'lucide-react'
 import { className } from '../../../core/utils'
@@ -14,23 +14,34 @@ export function AutoSavedNotice() {
 
 export function BankSection({
   children,
-  defaultOpen = false,
+  defaultOpen = true,
+  id,
   isComplete,
   title,
 }: {
   children: ReactNode
   defaultOpen?: boolean
+  id?: string
   isComplete?: boolean
   title: string
 }) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
 
+  useEffect(() => {
+    if (!id) return
+    const openForSearch = (event: Event) => {
+      if ((event as CustomEvent<{ targetId?: string }>).detail?.targetId === id) setIsOpen(true)
+    }
+    window.addEventListener('bank-search-focus', openForSearch)
+    return () => window.removeEventListener('bank-search-focus', openForSearch)
+  }, [id])
+
   return (
-    <div className="rounded-lg border border-slate-200 bg-white">
-      <button className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left" onClick={() => setIsOpen((current) => !current)} type="button">
+    <div className="min-w-0 max-w-full overflow-hidden rounded-lg border border-slate-200 bg-white" id={id}>
+      <button className="flex min-w-0 w-full items-center justify-between gap-3 px-4 py-3 text-left" onClick={() => setIsOpen((current) => !current)} type="button">
         <span className="flex min-w-0 items-center gap-2">
           {isComplete ? <CheckCircle2 className="shrink-0 text-emerald-600" size={16} /> : <Circle className="shrink-0 text-slate-300" size={16} />}
-          <span className="truncate text-sm font-semibold text-slate-900">{title}</span>
+          <span className="break-words text-sm font-semibold leading-5 text-slate-900">{title}</span>
         </span>
         <ChevronDown className={className('shrink-0 text-slate-400 transition-transform', isOpen ? 'rotate-180' : '')} size={18} />
       </button>

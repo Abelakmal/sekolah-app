@@ -54,6 +54,12 @@ export function AdminPage({
     setUserError("");
 
     if (editingTeacher) {
+      if (teacherPasswordDraft && teacherPasswordDraft.trim().length < 6) {
+        setUserError("Password baru minimal 6 karakter.");
+        setIsSavingTeacher(false);
+        return;
+      }
+
       const session = await getAdminSession();
       if (!session) {
         setIsSavingTeacher(false);
@@ -73,6 +79,7 @@ export function AdminPage({
           identityNumber: teacherDraft.identityNumber,
           identityType: teacherDraft.identityType,
           name: teacherDraft.name,
+          password: teacherPasswordDraft || undefined,
         }),
       });
 
@@ -481,13 +488,16 @@ export function AdminPage({
                   type="email"
                   value={teacherDraft.email}
                 />
-                {!editingTeacher && (
-                  <TextField
-                    label="Password Awal"
-                    onChange={setTeacherPasswordDraft}
-                    type="password"
-                    value={teacherPasswordDraft}
-                  />
+                <TextField
+                  label={editingTeacher ? "Password Baru (opsional)" : "Password Awal"}
+                  onChange={setTeacherPasswordDraft}
+                  type="password"
+                  value={teacherPasswordDraft}
+                />
+                {editingTeacher && (
+                  <p className="-mt-3 text-xs text-slate-500 md:col-span-2">
+                    Kosongkan jika password guru tidak perlu diubah. Password baru minimal 6 karakter.
+                  </p>
                 )}
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700">

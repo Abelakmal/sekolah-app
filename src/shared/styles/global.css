@@ -100,3 +100,40 @@ button:disabled {
 .icon-button:hover {
   background: #f8fafc;
 }
+
+.rich-editor-shell {
+  contain: inline-size;
+}
+
+.rich-editor-body {
+  width: 100%;
+}
+
+.rich-editor-content-viewport {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 640px) {
+  .rich-editor-toolbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .rich-editor-toolbar > * {
+    flex: 0 0 auto;
+  }
+
+  .rich-editor-body {
+    min-width: 680px;
+    max-width: none;
+  }
+
+  .rich-editor-body table {
+    min-width: 680px !important;
+  }
+}

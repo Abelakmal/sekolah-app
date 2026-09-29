@@ -106,6 +106,7 @@ export function ActivitiesTab({ setState, state, topic }: ActivitiesTabProps) {
         <div className="grid gap-3">
           {(Object.keys(phaseLabels) as PhaseKey[]).map((phase) => (
             <RichActivityPhaseEditor
+              anchorId={`activities-${phase}`}
               key={phase}
               label={phaseLabels[phase]}
               onChange={(patch) => updateRichPhase(phase, patch)}
@@ -116,7 +117,7 @@ export function ActivitiesTab({ setState, state, topic }: ActivitiesTabProps) {
       </section>
 
       <section className="rounded-lg border border-slate-200 bg-white p-5">
-        <BankSection isComplete={reflectionComplete} title="Refleksi">
+        <BankSection id="activities-reflection" isComplete={reflectionComplete} title="Refleksi">
           <div className="mb-4 flex justify-end">
             <AutoSavedNotice />
           </div>
@@ -140,16 +141,18 @@ export function ActivitiesTab({ setState, state, topic }: ActivitiesTabProps) {
 }
 
 function RichActivityPhaseEditor({
+  anchorId,
   label,
   onChange,
   value,
 }: {
+  anchorId: string
   label: string
   onChange: (patch: Partial<LearningActivityPhase>) => void
   value: LearningActivityPhase
 }) {
   return (
-    <BankSection defaultOpen isComplete={Boolean(value.steps && value.durationMinutes > 0)} title={label}>
+    <BankSection defaultOpen id={anchorId} isComplete={Boolean(value.steps && value.durationMinutes > 0)} title={label}>
       <div className="grid gap-6 md:grid-cols-[1fr_160px]">
         <TextField label="Judul Bagian" onChange={(title) => onChange({ title })} value={value.title} />
         <NumberField label="Durasi (menit)" onChange={(durationMinutes) => onChange({ durationMinutes })} value={value.durationMinutes} />

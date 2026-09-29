@@ -50,47 +50,41 @@ export function AppendicesTab({ query, setState, state, topic }: AppendicesTabPr
           </div>
           <AutoSavedNotice />
         </div>
-        <BankSection defaultOpen isComplete={mainAppendicesComplete} title="Lampiran 1 — Bahan Bacaan Guru dan Peserta Didik">
+        <BankSection defaultOpen id="attachments-reading" isComplete={mainAppendicesComplete} title="Lampiran 1 — Bahan Bacaan Guru dan Peserta Didik">
           <RichTextEditor label="Bahan Bacaan" onChange={(readingMaterials) => updateAppendices({ readingMaterials })} value={appendices.readingMaterials} />
         </BankSection>
       </section>
 
-      <ReadingSectionEditor
-        onChange={(readingSections) => updateAppendices({ readingSections })}
-        query={query}
-        values={appendices.readingSections}
-      />
+      <div id="attachments-reading-sections">
+        <ReadingSectionEditor
+          onChange={(readingSections) => updateAppendices({ readingSections })}
+          query={query}
+          values={appendices.readingSections}
+        />
+      </div>
 
       <section className="rounded-lg border border-slate-200 bg-white p-5">
-        <BankSection defaultOpen title="Lampiran 2 — Media Pembelajaran">
+        <BankSection defaultOpen id="attachments-media" title="Lampiran 2 — Media Pembelajaran">
           <RichTextEditor label="Media Pembelajaran" onChange={(learningMedia) => updateAppendices({ learningMedia })} value={appendices.learningMedia} />
         </BankSection>
       </section>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-5">
+      <section className="rounded-lg border border-slate-200 bg-white p-5" id="attachments-worksheets">
         <h3 className="mb-1 text-base font-semibold">Lampiran 3 — LKPD</h3>
         <p className="mb-5 text-sm text-slate-500">Buat LKPD berkelompok dan individu yang akan ditempatkan sebagai Lampiran 3 pada dokumen Word.</p>
         <RichWorksheetEditor query={query} setState={setState} state={state} topic={topic} />
       </section>
 
       <section className="rounded-lg border border-slate-200 bg-white p-5">
-        <BankSection defaultOpen title="Lampiran 4 — Instrumen Penilaian">
+        <BankSection defaultOpen id="attachments-instruments" title="Lampiran 4 — Instrumen Penilaian">
           <p className="mb-5 text-sm leading-6 text-slate-500">Isi langsung seluruh instrumen, rubrik, dan format penilaian sesuai kebutuhan modul. Konten ini diekspor sebagai satu Lampiran 4.</p>
           <RichTextEditor label="Isi Instrumen Penilaian" onChange={(assessmentInstruments) => updateAppendices({ assessmentInstruments })} value={appendices.assessmentInstruments} />
         </BankSection>
       </section>
 
-      <GlossaryEditor
-        onChange={(glossary) => updateAppendices({ glossary })}
-        query={query}
-        values={appendices.glossary}
-      />
-      <CustomAppendixEditor onChange={(customSections) => updateAppendices({ customSections })} values={appendices.customSections} />
-      <AppendixFileEditor
-        files={appendices.files}
-        onChange={(files) => updateAppendices({ files })}
-        query={query}
-      />
+      <div id="attachments-glossary"><GlossaryEditor onChange={(glossary) => updateAppendices({ glossary })} query={query} values={appendices.glossary} /></div>
+      <div id="attachments-custom"><CustomAppendixEditor onChange={(customSections) => updateAppendices({ customSections })} values={appendices.customSections} /></div>
+      <div id="attachments-files"><AppendixFileEditor files={appendices.files} onChange={(files) => updateAppendices({ files })} query={query} /></div>
     </div>
   )
 }

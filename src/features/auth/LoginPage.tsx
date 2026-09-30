@@ -1,4 +1,5 @@
-import { BriefcaseBusiness, LockKeyhole, Mail } from 'lucide-react'
+import { LockKeyhole, Mail } from 'lucide-react'
+import { AppLogo } from '../../shared/components/AppLogo'
 
 const classroomImageUrl =
   'https://images.unsplash.com/photo-1758270705696-ec9caffc73dd?auto=format&fit=crop&ixlib=rb-4.1.0&q=80&w=1600'
@@ -21,9 +22,7 @@ export function LoginPage({ email, error, onEmailChange, onPasswordChange, onSub
           <div className="absolute inset-0 bg-blue-950/75" />
           <div className="relative z-10 flex h-full flex-col justify-between p-8">
             <div>
-              <div className="grid size-12 place-items-center rounded-lg bg-sky-500">
-                <BriefcaseBusiness size={24} />
-              </div>
+              <AppLogo className="size-12" />
               <h1 className="mt-6 text-3xl font-semibold tracking-normal">Administrasi Guru</h1>
               <p className="mt-3 max-w-md text-sm leading-6 text-blue-100">
                 Bank pembelajaran dan penyusun administrasi PJOK SD untuk guru dan admin sekolah.
@@ -36,9 +35,7 @@ export function LoginPage({ email, error, onEmailChange, onPasswordChange, onSub
 
         <div className="p-5 sm:p-8">
           <div className="mb-7 lg:hidden">
-            <div className="grid size-11 place-items-center rounded-lg bg-blue-950 text-white">
-              <BriefcaseBusiness size={22} />
-            </div>
+            <AppLogo className="size-11" />
           </div>
 
           <p className="text-sm font-medium text-slate-500">Masuk akun</p>

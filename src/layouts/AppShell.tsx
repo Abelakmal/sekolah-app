@@ -3,7 +3,6 @@ import { useState } from 'react'
 import {
   Archive,
   BookOpenCheck,
-  BriefcaseBusiness,
   Calendar,
   ClipboardList,
   FileStack,
@@ -13,6 +12,7 @@ import {
   UsersRound,
 } from 'lucide-react'
 import { className } from '../core/utils'
+import { AppLogo } from '../shared/components/AppLogo'
 import { getModuleCompletion } from '../core/moduleCompletion'
 import { getAcademicYearOptions, getCurrentAcademicYear, isAcademicYear } from '../core/academicYear'
 import type { AppState, AppView, BankTab, LearningTopic, UserRole } from '../core/types'
@@ -76,9 +76,7 @@ export function AppShell({ activeTopicTab, activeView, children, onLogout, onAca
         <div className={className('border-b border-white/10 py-5', isSidebarCollapsed ? 'px-3' : 'px-5')}>
           <div className={className('flex items-center gap-3', isSidebarCollapsed ? 'justify-center' : 'justify-between')}>
             <div className={className('flex min-w-0 items-center gap-3', isSidebarCollapsed ? 'justify-center' : '')}>
-            <div className="grid size-10 place-items-center rounded-lg bg-sky-500">
-              <BriefcaseBusiness size={21} />
-            </div>
+            <AppLogo />
             {!isSidebarCollapsed && (
             <div>
               <p className="text-sm font-semibold leading-5">Administrasi Guru</p>
@@ -138,7 +136,7 @@ export function AppShell({ activeTopicTab, activeView, children, onLogout, onAca
           <button aria-label="Tutup navigasi" className="absolute inset-0 bg-slate-950/45" onClick={() => setIsMobileMenuOpen(false)} type="button" />
           <aside className="relative flex h-full w-[min(19rem,85vw)] flex-col bg-blue-950 text-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 px-5 py-5">
-              <div className="flex items-center gap-3"><div className="grid size-10 place-items-center rounded-lg bg-sky-500"><BriefcaseBusiness size={21} /></div><div><p className="text-sm font-semibold">Administrasi Guru</p><p className="text-xs text-blue-100">Bank PJOK SD</p></div></div>
+              <div className="flex items-center gap-3"><AppLogo /><div><p className="text-sm font-semibold">Administrasi Guru</p><p className="text-xs text-blue-100">Bank PJOK SD</p></div></div>
               <button className="icon-button border-white/20 bg-white/10 text-white" onClick={() => setIsMobileMenuOpen(false)} type="button"><PanelLeftClose size={18} /></button>
             </div>
             <nav className="grid gap-1 overflow-y-auto px-3 py-4">

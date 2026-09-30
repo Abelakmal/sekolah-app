@@ -37,6 +37,7 @@ import {
   TextField,
 } from "../../../shared/components/FormControls";
 import { FormPanel } from "../../../shared/components/FormPanel";
+import { FormModal } from "../../../shared/components/FormModal";
 import { confirmDelete } from "../../../shared/utils/confirmDelete";
 import { ActivitiesTab } from "./ActivitiesTab";
 import { AppendicesTab } from "./AppendicesTab";
@@ -527,6 +528,10 @@ function getSearchTargetId(tab: BankTab, resultId: string) {
   if (tab === "competencies") {
     if (resultId.startsWith("objective")) return "competencies-objectives";
     if (resultId.startsWith("material")) return "competencies-objectives";
+    if (resultId === "competency-1") return "competencies-understanding";
+    if (resultId === "competency-2") return "competencies-trigger";
+    if (resultId === "competency-3") return "competencies-diagnostic";
+    if (["competency-4", "competency-5", "competency-6"].includes(resultId)) return "competencies-preparation";
     return "competencies-core";
   }
   if (tab === "activities") {
@@ -894,14 +899,6 @@ function ModuleInfoTab({
 
 function CompetenciesTab({ query, setState, state, topic }: BankTabProps) {
   const competency = getModuleCompetency(state, topic);
-  const coreComplete = Boolean(
-    competency.learningAchievements &&
-    competency.meaningfulUnderstanding &&
-    competency.affectivePreparation &&
-    competency.cognitivePreparation &&
-    competency.psychomotorPreparation,
-  );
-
   function updateCompetency(patch: Partial<ModuleCompetency>) {
     setState((current) => ({
       ...current,
@@ -930,8 +927,8 @@ function CompetenciesTab({ query, setState, state, topic }: BankTabProps) {
         <BankSection
           defaultOpen
           id="competencies-core"
-          isComplete={coreComplete}
-          title="Kompetensi, Capaian, dan Persiapan"
+          isComplete={Boolean(competency.learningAchievements)}
+          title="A. Capaian Pembelajaran"
         >
           <div className="grid gap-6">
             <TextArea
@@ -941,6 +938,20 @@ function CompetenciesTab({ query, setState, state, topic }: BankTabProps) {
               }
               value={competency.learningAchievements}
             />
+          </div>
+        </BankSection>
+      </section>
+
+      <div id="competencies-objectives">
+        <ObjectivesTab
+          query={query}
+          setState={setState}
+          state={state}
+          topic={topic}
+        />
+      </div>
+
+      <BankSection defaultOpen id="competencies-understanding" isComplete={Boolean(competency.meaningfulUnderstanding)} title="C. Pemahaman Bermakna">
             <TextArea
               label="Pemahaman Bermakna"
               onChange={(meaningfulUnderstanding) =>
@@ -948,6 +959,24 @@ function CompetenciesTab({ query, setState, state, topic }: BankTabProps) {
               }
               value={competency.meaningfulUnderstanding}
             />
+      </BankSection>
+
+      <StringListEditor
+        id="competencies-trigger"
+        label="D. Pertanyaan Pemantik"
+        onChange={(triggerQuestions) => updateCompetency({ triggerQuestions })}
+        placeholder="Contoh: Bagaimana cara melakukan passing bawah dengan benar?"
+        values={competency.triggerQuestions}
+      />
+      <StringListEditor
+        id="competencies-diagnostic"
+        label="E. Asesmen Diagnostik Non-Kognitif"
+        onChange={(diagnosticQuestions) => updateCompetency({ diagnosticQuestions })}
+        placeholder="Contoh: Bagaimana kabar peserta didik hari ini?"
+        values={competency.diagnosticQuestions}
+      />
+
+      <BankSection defaultOpen id="competencies-preparation" isComplete={Boolean(competency.affectivePreparation && competency.cognitivePreparation && competency.psychomotorPreparation)} title="F. Persiapan Pembelajaran">
             <div className="grid gap-6 lg:grid-cols-2">
               <TextArea
                 label="Persiapan Afektif"
@@ -973,45 +1002,21 @@ function CompetenciesTab({ query, setState, state, topic }: BankTabProps) {
                 />
               </div>
             </div>
-          </div>
-        </BankSection>
-      </section>
-
-      <StringListEditor
-        label="Pertanyaan Pemantik"
-        onChange={(triggerQuestions) => updateCompetency({ triggerQuestions })}
-        placeholder="Contoh: Bagaimana cara melakukan passing bawah dengan benar?"
-        values={competency.triggerQuestions}
-      />
-      <StringListEditor
-        label="Asesmen Diagnostik Non-Kognitif"
-        onChange={(diagnosticQuestions) =>
-          updateCompetency({ diagnosticQuestions })
-        }
-        placeholder="Contoh: Bagaimana kabar peserta didik hari ini?"
-        values={competency.diagnosticQuestions}
-      />
-
-      <div id="competencies-objectives">
-        <ObjectivesTab
-          query={query}
-          setState={setState}
-          state={state}
-          topic={topic}
-        />
-      </div>
+      </BankSection>
     </div>
   );
 }
 
 function StringListEditor({
   embedded = false,
+  id,
   label,
   onChange,
   placeholder,
   values,
 }: {
   embedded?: boolean;
+  id?: string;
   label: string;
   onChange: (values: string[]) => void;
   placeholder: string;
@@ -1027,7 +1032,7 @@ function StringListEditor({
   }
 
   return (
-    <section className={embedded ? "" : "rounded-lg border border-slate-200 bg-white p-5"}>
+    <section id={id} className={embedded ? "" : "rounded-lg border border-slate-200 bg-white p-5"}>
       {!embedded && <h3 className="mb-3 text-base font-semibold">{label}</h3>}
       <div className="grid gap-2">
         {values.map((value, index) => (
@@ -1074,6 +1079,7 @@ function StringListEditor({
 }
 
 function ObjectivesTab({ query, setState, state, topic }: BankTabProps) {
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [editing, setEditing] = useState<LearningObjective | null>(null);
   const [draft, setDraft] = useState({ title: "", description: "" });
   const items = state.objectives
@@ -1104,16 +1110,19 @@ function ObjectivesTab({ query, setState, state, topic }: BankTabProps) {
     }
     setEditing(null);
     setDraft({ title: "", description: "" });
+    setIsFormOpen(false);
   }
 
   return (
     <CrudSection
+      showActionLabels
       empty="Belum ada tujuan pembelajaran."
       items={items.map((item) => ({
         id: item.id,
         title: item.description,
         meta: item.title,
         onEdit: () => {
+          setIsFormOpen(true);
           setEditing(item);
           setDraft({ title: item.title, description: item.description });
         },
@@ -1126,15 +1135,18 @@ function ObjectivesTab({ query, setState, state, topic }: BankTabProps) {
           })),
       }))}
       onAdd={() => {
+        setIsFormOpen(true);
         setEditing(null);
         setDraft({ title: "", description: "" });
       }}
-      title="Tujuan Pembelajaran"
+      title="B. Tujuan Pembelajaran"
     >
-      {(editing || draft.title || draft.description) && (
-        <FormPanel
+      {isFormOpen && (
+        <FormModal
+          canSave={Boolean(draft.title.trim() && draft.description.trim())}
           title={editing ? "Edit Tujuan" : "Tambah Tujuan"}
           onCancel={() => {
+            setIsFormOpen(false);
             setEditing(null);
             setDraft({ title: "", description: "" });
           }}
@@ -1152,7 +1164,7 @@ function ObjectivesTab({ query, setState, state, topic }: BankTabProps) {
             }
             value={draft.description}
           />
-        </FormPanel>
+        </FormModal>
       )}
     </CrudSection>
   );

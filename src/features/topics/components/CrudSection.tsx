@@ -9,12 +9,14 @@ export function CrudSection({
   items,
   onAdd,
   title,
+  showActionLabels = false,
 }: {
   children: ReactNode
   empty: string
   items: Array<{ id: string; title: string; meta: string; description?: string; onEdit: () => void; onDelete: () => void }>
   onAdd: () => void
   title: string
+  showActionLabels?: boolean
 }) {
   return (
     <section className="rounded-lg border border-slate-200 bg-white p-5">
@@ -35,8 +37,9 @@ export function CrudSection({
                 {item.description && <p className="mt-2 text-sm leading-6 text-slate-600">{item.description}</p>}
               </div>
               <div className="flex shrink-0 gap-1">
-                <button className="icon-button" onClick={item.onEdit} title="Edit" type="button">
+                <button aria-label="Edit" className="icon-button" onClick={item.onEdit} title="Edit" type="button">
                   <Pencil size={15} />
+                  {showActionLabels && <span>Edit</span>}
                 </button>
                 <button
                   className="icon-button text-red-600"

@@ -126,7 +126,7 @@ export function App() {
     if (profile.role === 'admin') {
       const { data: teacherRows } = await supabase
         .from('teachers')
-        .select('id,profile_id,name,email,identity_type,identity_number,subject,classes')
+        .select('id,profile_id,name,email,identity_type,identity_number,subject,classes,school_name,principal_name,principal_nip,institution_name,institution_logo_url')
         .returns<SupabaseTeacher[]>()
 
       if (teacherRows) {
@@ -160,7 +160,7 @@ export function App() {
 
     const { data: teacherRow, error: teacherError } = await supabase
       .from('teachers')
-      .select('id,profile_id,name,email,identity_type,identity_number,subject,classes')
+      .select('id,profile_id,name,email,identity_type,identity_number,subject,classes,school_name,principal_name,principal_nip,institution_name,institution_logo_url')
       .eq('id', profile.teacher_id)
       .maybeSingle<SupabaseTeacher>()
 

@@ -17,6 +17,11 @@ export type SupabaseTeacher = {
   identity_number: string
   subject: 'PJOK'
   classes: number[]
+  school_name: string
+  principal_name: string
+  principal_nip: string
+  institution_name: string
+  institution_logo_url: string
 }
 
 export type SupabaseLearningTopic = {
@@ -39,6 +44,11 @@ export function mapSupabaseTeacher(row: SupabaseTeacher): Teacher {
     identityType: row.identity_type,
     subject: 'PJOK',
     classes: row.classes.filter((grade): grade is Teacher['classes'][number] => grade >= 1 && grade <= 6),
+    schoolName: row.school_name ?? '',
+    principalName: row.principal_name ?? '',
+    principalNip: row.principal_nip ?? '',
+    institutionName: row.institution_name ?? '',
+    institutionLogoUrl: row.institution_logo_url ?? '',
   }
 }
 

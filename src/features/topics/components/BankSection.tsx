@@ -14,12 +14,14 @@ export function AutoSavedNotice() {
 
 export function BankSection({
   children,
+  className: wrapperClassName,
   defaultOpen = true,
   id,
   isComplete,
   title,
 }: {
   children: ReactNode
+  className?: string
   defaultOpen?: boolean
   id?: string
   isComplete?: boolean
@@ -37,7 +39,7 @@ export function BankSection({
   }, [id])
 
   return (
-    <div className="min-w-0 max-w-full overflow-hidden rounded-lg border border-slate-200 bg-white" id={id}>
+    <div className={className("min-w-0 max-w-full overflow-hidden rounded-lg border border-slate-200 bg-white", wrapperClassName)} id={id}>
       <button className="flex min-w-0 w-full items-center justify-between gap-3 px-4 py-3 text-left" onClick={() => setIsOpen((current) => !current)} type="button">
         <span className="flex min-w-0 items-center gap-2">
           {isComplete ? <CheckCircle2 className="shrink-0 text-emerald-600" size={16} /> : <Circle className="shrink-0 text-slate-300" size={16} />}

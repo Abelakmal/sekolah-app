@@ -118,6 +118,24 @@ export function RichTextEditor({ id, label, onChange, value }: { id?: string; la
     emitChange()
   }
 
+  function deleteTable() {
+    const table = getCurrentCell()?.closest('table')
+    const editor = editorRef.current
+    if (!table || !editor?.contains(table)) {
+      window.alert('Letakkan kursor di dalam tabel yang ingin dihapus.')
+      return
+    }
+    const hasContent = Boolean(table.textContent?.replace(/[\s\u200B\uFEFF]/g, '') || table.querySelector('img, video, audio, iframe, object, embed, svg, canvas'))
+    if (hasContent && !window.confirm('Hapus seluruh tabel beserta teks dan gambar di dalamnya?')) return
+
+    // Replace the selected table through the browser editing command so Undo
+    // can restore it, and leave an editable paragraph at the cursor position.
+    const range = document.createRange()
+    range.selectNode(table)
+    selectionRef.current = range
+    command('insertHTML', '<p><br></p>')
+  }
+
   function addLink() {
     const url = window.prompt('Masukkan tautan')
     if (url) command('createLink', url)
@@ -175,6 +193,7 @@ export function RichTextEditor({ id, label, onChange, value }: { id?: string; la
           <EditorButton label="Tambah kolom tabel" onClick={addTableColumn}><Columns3 size={15} /></EditorButton>
           <EditorButton label="Hapus baris tabel" onClick={deleteTableRow}><Trash2 size={15} /></EditorButton>
           <EditorButton label="Hapus kolom tabel" onClick={deleteTableColumn}><Trash2 className="rotate-90" size={15} /></EditorButton>
+          <EditorButton label="Hapus tabel" onClick={deleteTable}><Table2 className="text-red-600" size={15} /></EditorButton>
           <EditorButton label="Tautan" onClick={addLink}><Link size={15} /></EditorButton>
           <EditorButton label="Video YouTube" onClick={addVideo}><Video size={15} /></EditorButton>
           <EditorButton label="Sisipkan gambar" onClick={() => imageInputRef.current?.click()}><ImagePlus size={15} /></EditorButton>
@@ -193,13 +212,13 @@ export function RichTextEditor({ id, label, onChange, value }: { id?: string; la
           />
         </div>
       </div>
-      <p className="mt-1 text-xs text-slate-500">Gambar maksimal 2 MB. Tabel dapat ditambah dari toolbar; letakkan kursor di dalam sel sebelum menambah atau menghapus baris/kolom.</p>
+      <p className="mt-1 text-xs text-slate-500">Gambar maksimal 2 MB. Letakkan kursor di dalam sel untuk mengubah baris/kolom. Ikon tabel merah menghapus seluruh tabel beserta isinya.</p>
     </div>
   )
 }
 
 function EditorButton({ children, label, onClick }: { children: ReactNode; label: string; onClick: () => void }) {
-  return <button className="icon-button size-8" onClick={onClick} onMouseDown={(event) => event.preventDefault()} title={label} type="button">{children}</button>
+  return <button aria-label={label} className="icon-button size-8" onClick={onClick} onMouseDown={(event) => event.preventDefault()} title={label} type="button">{children}</button>
 }
 
 function ColorPicker({ icon, label, onChange }: { icon: ReactNode; label: string; onChange: (color: string) => void }) {

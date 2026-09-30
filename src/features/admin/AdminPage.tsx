@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import { ArrowLeft, Plus, Settings, Trash2 } from "lucide-react";
+import { ArrowLeft, ImagePlus, Plus, Settings, Trash2 } from "lucide-react";
 import { setActiveTeacher, updateTeacherInState } from "../../core/storage";
 import { supabase } from "../../core/supabase/client";
 import { mapSupabaseTeacher } from "../../core/supabase/types";
@@ -80,6 +80,11 @@ export function AdminPage({
           identityType: teacherDraft.identityType,
           name: teacherDraft.name,
           password: teacherPasswordDraft || undefined,
+          schoolName: teacherDraft.schoolName,
+          principalName: teacherDraft.principalName,
+          principalNip: teacherDraft.principalNip,
+          institutionName: teacherDraft.institutionName,
+          institutionLogoUrl: teacherDraft.institutionLogoUrl,
         }),
       });
 
@@ -121,6 +126,11 @@ export function AdminPage({
           identityType: teacherDraft.identityType,
           name: teacherDraft.name,
           password: teacherPasswordDraft,
+          schoolName: teacherDraft.schoolName,
+          principalName: teacherDraft.principalName,
+          principalNip: teacherDraft.principalNip,
+          institutionName: teacherDraft.institutionName,
+          institutionLogoUrl: teacherDraft.institutionLogoUrl,
         }),
       });
 
@@ -286,6 +296,29 @@ export function AdminPage({
     }
 
     return session;
+  }
+
+  async function uploadInstitutionLogo(file?: File) {
+    if (!file) return;
+    if (!file.type.startsWith("image/") || file.size > 2 * 1024 * 1024) {
+      setUserError("Logo harus berupa gambar dengan ukuran maksimal 2 MB.");
+      return;
+    }
+    const session = await getAdminSession();
+    if (!session) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await fetch("/api/storage/images", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session.access_token}` },
+      body: formData,
+    });
+    const result = (await response.json()) as { error?: string; url?: string };
+    if (!response.ok || !result.url) {
+      setUserError(result.error ?? "Logo gagal diunggah.");
+      return;
+    }
+    setTeacherDraft((current) => ({ ...current, institutionLogoUrl: result.url! }));
   }
 
   function closeTeacherConfig() {
@@ -530,6 +563,42 @@ export function AdminPage({
                   }
                   value={teacherDraft.identityNumber}
                 />
+                <div className="md:col-span-2 border-t border-slate-200 pt-5">
+                  <p className="text-base font-semibold text-slate-900">Profil Sekolah dan Cover Dokumen</p>
+                  <p className="mt-1 text-sm text-slate-500">Data ini khusus untuk dokumen guru ini.</p>
+                </div>
+                <TextField
+                  label="Nama Sekolah"
+                  onChange={(schoolName) => setTeacherDraft((current) => ({ ...current, schoolName }))}
+                  value={teacherDraft.schoolName}
+                />
+                <TextField
+                  label="Nama Kepala Sekolah"
+                  onChange={(principalName) => setTeacherDraft((current) => ({ ...current, principalName }))}
+                  value={teacherDraft.principalName}
+                />
+                <TextField
+                  label="NIP Kepala Sekolah"
+                  onChange={(principalNip) => setTeacherDraft((current) => ({ ...current, principalNip }))}
+                  value={teacherDraft.principalNip}
+                />
+                <TextField
+                  label="Nama Instansi pada Cover (opsional)"
+                  onChange={(institutionName) => setTeacherDraft((current) => ({ ...current, institutionName }))}
+                  value={teacherDraft.institutionName}
+                />
+                <div className="md:col-span-2">
+                  <p className="mb-2 text-sm font-semibold text-slate-700">Logo Instansi pada Cover</p>
+                  <div className="flex flex-wrap items-center gap-3">
+                    {teacherDraft.institutionLogoUrl ? <img alt="Logo instansi" className="size-16 rounded-md border border-slate-200 object-contain" src={teacherDraft.institutionLogoUrl} /> : <div className="grid size-16 place-items-center rounded-md border border-dashed border-slate-300 text-slate-400"><ImagePlus size={20} /></div>}
+                    <label className="btn-secondary h-10 cursor-pointer px-3 text-sm">
+                      <ImagePlus size={16} /> Upload Logo
+                      <input accept="image/*" className="hidden" onChange={(event) => void uploadInstitutionLogo(event.target.files?.[0])} type="file" />
+                    </label>
+                    {teacherDraft.institutionLogoUrl && <button className="btn-secondary h-10 px-3 text-sm" onClick={() => setTeacherDraft((current) => ({ ...current, institutionLogoUrl: "" }))} type="button">Hapus Logo</button>}
+                    <p className="w-full text-xs text-slate-500">PNG, JPG, atau WEBP; maksimal 2 MB.</p>
+                  </div>
+                </div>
               </div>
 
               {userError && (
@@ -568,42 +637,26 @@ export function AdminPage({
       ) : (
         <section className="rounded-lg border border-slate-200 bg-white p-5">
           <div className="mb-5">
-            <p className="text-sm text-slate-500">Konfigurasi sekolah</p>
+            <p className="text-sm text-slate-500">Profil sekolah per guru</p>
             <h2 className="text-2xl font-semibold tracking-normal">
-              Data Sekolah
+              Manajemen Sekolah
             </h2>
+            <p className="mt-2 text-sm text-slate-600">Nama sekolah, kepala sekolah, dan logo cover tersimpan bersama akun guru pemilik dokumen.</p>
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <TextField
-              label="Nama Sekolah"
-              onChange={(value) =>
-                setState((current) => ({
-                  ...current,
-                  school: { ...current.school, name: value },
-                }))
-              }
-              value={state.school.name}
-            />
-            <TextField
-              label="Nama Kepala Sekolah"
-              onChange={(value) =>
-                setState((current) => ({
-                  ...current,
-                  school: { ...current.school, principalName: value },
-                }))
-              }
-              value={state.school.principalName}
-            />
-            <TextField
-              label="NIP Kepala Sekolah"
-              onChange={(value) =>
-                setState((current) => ({
-                  ...current,
-                  school: { ...current.school, principalNip: value },
-                }))
-              }
-              value={state.school.principalNip}
-            />
+          <div className="grid gap-3">
+            {state.teachers.map((teacher) => (
+              <article className="flex flex-col gap-3 rounded-lg border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between" key={teacher.id}>
+                <div className="flex min-w-0 items-center gap-3">
+                  {teacher.institutionLogoUrl ? <img alt="Logo instansi" className="size-12 shrink-0 rounded-md border border-slate-200 object-contain" src={teacher.institutionLogoUrl} /> : <div className="grid size-12 shrink-0 place-items-center rounded-md bg-slate-100 text-xs text-slate-400">Logo</div>}
+                  <div className="min-w-0">
+                    <p className="font-semibold text-slate-900">{teacher.schoolName || "Sekolah belum diisi"}</p>
+                    <p className="text-sm text-slate-600">Guru: {teacher.name} · Kepala sekolah: {teacher.principalName || "-"}</p>
+                  </div>
+                </div>
+                <button className="btn-secondary shrink-0" onClick={() => { setActiveTab("users"); startTeacherForm(teacher); }} type="button">Kelola</button>
+              </article>
+            ))}
+            {state.teachers.length === 0 && <p className="rounded-md border border-dashed border-slate-300 p-4 text-sm text-slate-500">Tambahkan guru terlebih dahulu.</p>}
           </div>
         </section>
       )}
@@ -620,6 +673,11 @@ function createTeacherDraft(): Teacher {
     identityType: "NIP",
     subject: "PJOK",
     classes: [1],
+    schoolName: "",
+    principalName: "",
+    principalNip: "",
+    institutionName: "",
+    institutionLogoUrl: "",
   };
 }
 

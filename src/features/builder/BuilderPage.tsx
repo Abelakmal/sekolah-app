@@ -29,8 +29,8 @@ import { Toast } from "../../shared/components/Toast";
 import { DocumentPreviewModal } from "./DocumentPreviewModal";
 import {
   buildAdministrationDocumentHtml,
-  downloadAdministrationDocument,
 } from "./documentExport";
+import { buildAdministrationDocumentDocxBlob, downloadAdministrationDocumentDocx } from "./documentExportDocx";
 
 type BuilderSelection = {
   objectiveIds: string[];
@@ -198,9 +198,9 @@ export function BuilderPage({
   function saveDraftAndDownload() {
     const draft = buildDraft();
     setState((current) => ({ ...current, drafts: [draft, ...current.drafts] }));
-    downloadAdministrationDocument({ selected, state, topic });
+    void downloadAdministrationDocumentDocx({ selected, state, topic }).catch((error: unknown) => showToast(error instanceof Error ? error.message : "Export DOCX gagal."));
     resetBuilder();
-    showToast("Draft disimpan dan file Word mulai diunduh.");
+    showToast("Draft disimpan dan file DOCX mulai disiapkan.");
   }
 
   return (
@@ -359,10 +359,11 @@ export function BuilderPage({
       {showPreviewModal && (
         <DocumentPreviewModal
           html={buildAdministrationDocumentHtml({ selected, state, topic })}
+          docxBlob={() => buildAdministrationDocumentDocxBlob({ selected, state, topic })}
           onClose={() => setShowPreviewModal(false)}
-          onDownload={() => {
-            downloadAdministrationDocument({ selected, state, topic });
-            showToast("File Word mulai diunduh.");
+          onDownload={(blob) => {
+            void downloadAdministrationDocumentDocx({ selected, state, topic }, blob).catch((error: unknown) => showToast(error instanceof Error ? error.message : "Export DOCX gagal."));
+            showToast("File DOCX mulai disiapkan.");
           }}
           title={`Administrasi ${topic.title} - Kelas ${topic.classGrade}`}
         />
@@ -455,13 +456,18 @@ function ModuleInformationSheet({
   state: AppState;
   topic: LearningTopic;
 }) {
+  const documentTeacher = state.teachers.find((teacher) => teacher.id === topic.teacherId) ?? state.teacher;
+  const material = [
+    info?.mainMaterial,
+    info?.subMaterial ? `(${info.subMaterial})` : "",
+  ].filter(Boolean).join(" ");
   const identityRows: Array<[string, string | number | undefined]> = [
-    ["Nama Penyusun", state.teacher.name],
-    ["Instansi", state.school.name],
+    ["Nama Penyusun", documentTeacher.name],
+    ["Instansi", documentTeacher.schoolName || state.school.name],
     ["Tahun Ajaran", info?.academicYear],
     ["Mata Pelajaran", info?.subject],
     ["Fase/Kelas", `${info?.phase ?? "-"} / Kelas ${topic.classGrade}`],
-    ["Materi", info?.mainMaterial],
+    ["Materi", material],
     ["Bab/Pertemuan", info?.chapterMeeting],
     [
       "Alokasi Waktu",
@@ -889,7 +895,7 @@ function AppendicesDocumentPreview({
     { title: "Lampiran 4 — Instrumen Penilaian", content: appendices.assessmentInstruments, extra: "" },
     {
       title: "Lampiran 5 — Glosarium",
-      content: `<h3 class="center">GLOSARIUM</h3><ul>${appendices.glossary.map((item) => `<li><strong>${escapePreviewHtml(item.term)}:</strong> ${escapePreviewHtml(item.definition)}</li>`).join("")}</ul>`,
+      content: `<h3 class="center">GLOSARIUM</h3><ul>${appendices.glossary.map((item) => `<li>${escapePreviewHtml(item.term)}: ${escapePreviewHtml(item.definition)}</li>`).join("")}</ul>`,
       extra: "",
     },
     ...appendices.customSections.map((item, index) => ({ title: `Lampiran ${index + 6} — ${item.title}`, content: item.content, extra: "" })),

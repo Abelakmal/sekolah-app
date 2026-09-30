@@ -429,6 +429,7 @@ function getModuleSearchResults(
     ["Bab/Pertemuan", moduleInfo.chapterMeeting],
     ["Alokasi Waktu", moduleInfo.timeAllocation],
     ["Target Peserta Didik", moduleInfo.targetStudents],
+    ["Jumlah Peserta Didik", String(moduleInfo.studentCount || "")],
     ["Model Pembelajaran", moduleInfo.learningModel],
     ["Metode Pembelajaran", moduleInfo.learningMethods],
     ["Strategi Pembelajaran Berdiferensiasi", moduleInfo.differentiationStrategy],
@@ -443,11 +444,11 @@ function getModuleSearchResults(
   infoFields.forEach(([title, value], index) => add("module-info", title, value, `info-${index}`));
 
   const competency = getModuleCompetency(state, topic);
+  add("module-info", "Komponen Awal", competency.initialCompetency, "module-info-initial");
+  add("module-info", "Profil Pelajar Pancasila", competency.pancasilaProfiles, "module-info-pancasila");
   [
-    ["Komponen Awal", competency.initialCompetency],
     ["Capaian Pembelajaran", competency.learningAchievements],
     ["Pemahaman Bermakna", competency.meaningfulUnderstanding],
-    ["Profil Pelajar Pancasila", competency.pancasilaProfiles],
     ["Pertanyaan Pemantik", competency.triggerQuestions],
     ["Asesmen Diagnostik Non-Kognitif", competency.diagnosticQuestions],
     ["Persiapan Afektif", competency.affectivePreparation],
@@ -513,10 +514,14 @@ function searchPlainText(value: string) {
 
 function getSearchTargetId(tab: BankTab, resultId: string) {
   if (tab === "module-info") {
+    if (resultId === "module-info-initial") return "module-info-initial";
+    if (resultId === "module-info-pancasila") return "module-info-pancasila";
     const index = Number(resultId.replace("info-", ""));
-    if (index <= 7) return "module-info-identity";
-    if (index <= 10) return "module-info-strategy";
-    if (index <= 15) return "module-info-facilities";
+    if (index <= 6) return "module-info-identity";
+    if (index === 7) return "module-info-target";
+    if (index === 8) return "module-info-students";
+    if (index <= 11) return "module-info-strategy";
+    if (index <= 16) return "module-info-facilities";
     return "module-info-follow-up";
   }
   if (tab === "competencies") {
@@ -622,15 +627,16 @@ function ModuleInfoTab({
   topic: LearningTopic;
 }) {
   const info = getModuleInfo(state, topic);
+  const competency = getModuleCompetency(state, topic);
   const identityComplete = Boolean(
     info.academicYear &&
-    info.semester &&
     info.subject &&
     info.phase &&
     info.mainMaterial &&
-    info.timeAllocation &&
-    info.targetStudents,
+    info.timeAllocation,
   );
+  const initialComplete = Boolean(competency.initialCompetency);
+  const profileComplete = competency.pancasilaProfiles.length > 0;
   const strategyComplete = Boolean(
     info.learningModel && info.learningMethods && info.differentiationStrategy,
   );
@@ -648,6 +654,16 @@ function ModuleInfoTab({
           ...info,
           ...patch,
         },
+      },
+    }));
+  }
+
+  function updateCompetency(patch: Partial<ModuleCompetency>) {
+    setState((current) => ({
+      ...current,
+      moduleCompetencies: {
+        ...current.moduleCompetencies,
+        [topic.id]: { ...competency, ...patch },
       },
     }));
   }
@@ -670,10 +686,11 @@ function ModuleInfoTab({
       </div>
       <div className="grid gap-3">
         <BankSection
+          className="order-1"
           defaultOpen
           id="module-info-identity"
           isComplete={identityComplete}
-          title="Identitas dan Materi Modul"
+          title="A. Identitas Modul"
         >
           <div className="grid gap-6 md:grid-cols-2">
             <TextField
@@ -681,23 +698,6 @@ function ModuleInfoTab({
               onChange={(academicYear) => updateInfo({ academicYear })}
               value={info.academicYear}
             />
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Semester
-              </label>
-              <select
-                className="input"
-                onChange={(event) =>
-                  updateInfo({
-                    semester: event.target.value as ModuleInfo["semester"],
-                  })
-                }
-                value={info.semester}
-              >
-                <option>Ganjil</option>
-                <option>Genap</option>
-              </select>
-            </div>
             <TextField
               label="Mata Pelajaran"
               onChange={(subject) => updateInfo({ subject })}
@@ -728,26 +728,33 @@ function ModuleInfoTab({
               onChange={(timeAllocation) => updateInfo({ timeAllocation })}
               value={info.timeAllocation}
             />
-            <NumberField
-              label="Jumlah Peserta Didik"
-              onChange={(studentCount) => updateInfo({ studentCount })}
-              value={info.studentCount}
-            />
-            <div className="md:col-span-2">
-              <TextArea
-                label="Target Peserta Didik"
-                onChange={(targetStudents) => updateInfo({ targetStudents })}
-                value={info.targetStudents}
-              />
-            </div>
           </div>
         </BankSection>
 
+        <BankSection className="order-2" defaultOpen id="module-info-initial" isComplete={initialComplete} title="B. Komponen Awal">
+          <TextArea
+            label="Komponen Awal"
+            onChange={(initialCompetency) => updateCompetency({ initialCompetency })}
+            value={competency.initialCompetency}
+          />
+        </BankSection>
+
+        <BankSection className="order-3" defaultOpen id="module-info-pancasila" isComplete={profileComplete} title="C. Profil Pelajar Pancasila">
+          <StringListEditor
+            embedded
+            label="Profil Pelajar Pancasila"
+            onChange={(pancasilaProfiles) => updateCompetency({ pancasilaProfiles })}
+            placeholder="Contoh: Mandiri: peserta didik bertanggung jawab saat latihan."
+            values={competency.pancasilaProfiles}
+          />
+        </BankSection>
+
         <BankSection
+          className="order-7"
           defaultOpen
           id="module-info-strategy"
           isComplete={strategyComplete}
-          title="Strategi Pembelajaran"
+          title="G. Model Pembelajaran"
         >
           <div className="grid gap-6 md:grid-cols-2">
             <TextField
@@ -793,7 +800,7 @@ function ModuleInfoTab({
           </div>
         </BankSection>
 
-        <BankSection id="module-info-facilities" isComplete={facilityComplete} title="Sarana dan Prasarana">
+        <BankSection className="order-4" defaultOpen id="module-info-facilities" isComplete={facilityComplete} title="D. Sarana dan Prasarana">
           <div className="grid gap-6 md:grid-cols-2">
             <TextArea
               label="Media"
@@ -829,10 +836,28 @@ function ModuleInfoTab({
           </div>
         </BankSection>
 
+        <BankSection className="order-5" defaultOpen id="module-info-target" isComplete={Boolean(info.targetStudents)} title="E. Target Peserta Didik">
+          <TextArea
+            label="Target Peserta Didik"
+            onChange={(targetStudents) => updateInfo({ targetStudents })}
+            value={info.targetStudents}
+          />
+        </BankSection>
+
+        <BankSection className="order-6" defaultOpen id="module-info-students" isComplete={info.studentCount > 0} title="F. Jumlah Peserta Didik">
+          <NumberField
+            label="Jumlah Peserta Didik"
+            onChange={(studentCount) => updateInfo({ studentCount })}
+            value={info.studentCount}
+          />
+        </BankSection>
+
         <BankSection
+          className="order-8"
+          defaultOpen
           id="module-info-follow-up"
           isComplete={followUpComplete}
-          title="Pengayaan, Remedial, dan Pengesahan"
+          title="K. Kegiatan Pengayaan dan Remedial"
         >
           <div className="grid gap-6 md:grid-cols-2">
             <TextArea
@@ -845,6 +870,11 @@ function ModuleInfoTab({
               onChange={(remedial) => updateInfo({ remedial })}
               value={info.remedial}
             />
+          </div>
+        </BankSection>
+
+        <BankSection className="order-9" defaultOpen id="module-info-approval" isComplete={Boolean(info.approvalPlace && info.approvalDate)} title="M. Mengetahui / Mengesahkan">
+          <div className="grid gap-6 md:grid-cols-2">
             <TextField
               label="Tempat Pengesahan"
               onChange={(approvalPlace) => updateInfo({ approvalPlace })}
@@ -865,7 +895,6 @@ function ModuleInfoTab({
 function CompetenciesTab({ query, setState, state, topic }: BankTabProps) {
   const competency = getModuleCompetency(state, topic);
   const coreComplete = Boolean(
-    competency.initialCompetency &&
     competency.learningAchievements &&
     competency.meaningfulUnderstanding &&
     competency.affectivePreparation &&
@@ -905,13 +934,6 @@ function CompetenciesTab({ query, setState, state, topic }: BankTabProps) {
           title="Kompetensi, Capaian, dan Persiapan"
         >
           <div className="grid gap-6">
-            <TextArea
-              label="Komponen Awal"
-              onChange={(initialCompetency) =>
-                updateCompetency({ initialCompetency })
-              }
-              value={competency.initialCompetency}
-            />
             <TextArea
               label="Capaian Pembelajaran"
               onChange={(learningAchievements) =>
@@ -956,14 +978,6 @@ function CompetenciesTab({ query, setState, state, topic }: BankTabProps) {
       </section>
 
       <StringListEditor
-        label="Profil Pelajar Pancasila"
-        onChange={(pancasilaProfiles) =>
-          updateCompetency({ pancasilaProfiles })
-        }
-        placeholder="Contoh: Mandiri: peserta didik dapat bertanggung jawab saat latihan."
-        values={competency.pancasilaProfiles}
-      />
-      <StringListEditor
         label="Pertanyaan Pemantik"
         onChange={(triggerQuestions) => updateCompetency({ triggerQuestions })}
         placeholder="Contoh: Bagaimana cara melakukan passing bawah dengan benar?"
@@ -991,11 +1005,13 @@ function CompetenciesTab({ query, setState, state, topic }: BankTabProps) {
 }
 
 function StringListEditor({
+  embedded = false,
   label,
   onChange,
   placeholder,
   values,
 }: {
+  embedded?: boolean;
   label: string;
   onChange: (values: string[]) => void;
   placeholder: string;
@@ -1011,8 +1027,8 @@ function StringListEditor({
   }
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5">
-      <h3 className="mb-3 text-base font-semibold">{label}</h3>
+    <section className={embedded ? "" : "rounded-lg border border-slate-200 bg-white p-5"}>
+      {!embedded && <h3 className="mb-3 text-base font-semibold">{label}</h3>}
       <div className="grid gap-2">
         {values.map((value, index) => (
           <div

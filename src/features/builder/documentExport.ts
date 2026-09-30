@@ -352,18 +352,21 @@ function worksheetBlocks(
 
 function readingMaterialBlock(
   rows: Array<{ title: string; content: string }>,
-  fallback: string,
+  readingMaterials: string,
 ) {
-  if (rows.length === 0) return textBlock(fallback);
-
-  return rows
+  const additionalSections = rows
     .map(
-      (row, index) => `
-        <h3>${String.fromCharCode(65 + index)}. ${escapeHtml(row.title)}</h3>
-        ${textBlock(row.content)}
+      (row) => `
+        <h3>${escapeHtml(row.title)}</h3>
+        ${richTextBlock(row.content)}
       `,
     )
     .join("");
+
+  return (
+    `${readingMaterials.trim() ? richTextBlock(readingMaterials) : ""}${additionalSections}` ||
+    richTextBlock()
+  );
 }
 
 function glossaryTable(rows: Array<{ term: string; definition: string }>) {
@@ -372,7 +375,7 @@ function glossaryTable(rows: Array<{ term: string; definition: string }>) {
   return `
     <h3 class="center">GLOSARIUM</h3>
     <ul class="sheet-list">
-      ${rows.map((row) => `<li><strong>${escapeHtml(row.term)}:</strong> ${escapeHtml(row.definition)}</li>`).join("")}
+      ${rows.map((row) => `<li>${escapeHtml(row.term)}: ${escapeHtml(row.definition)}</li>`).join("")}
     </ul>
   `;
 }
@@ -416,6 +419,10 @@ export function buildAdministrationDocumentHtml({
     selected.objectiveIds.includes(item.id),
   );
   const moduleInfo = state.moduleInfo[topic.id];
+  const documentTeacher =
+    state.teachers.find((teacher) => teacher.id === topic.teacherId) ??
+    state.teacher;
+  const schoolName = documentTeacher.schoolName || state.school.name;
   const competency = state.moduleCompetencies[topic.id];
   const savedActivities = getModuleActivities(state, topic);
   const moduleActivities = {
@@ -435,17 +442,25 @@ export function buildAdministrationDocumentHtml({
         student.classGrade === topic.classGrade,
     )
     .sort((a, b) => a.orderNumber - b.orderNumber);
-  const teacherIdentity = state.teacher.identityNumber
-    ? `${state.teacher.identityType}. ${state.teacher.identityNumber}`
-    : state.teacher.identityType;
+  const teacherIdentity = documentTeacher.identityNumber
+    ? `${documentTeacher.identityType}. ${documentTeacher.identityNumber}`
+    : documentTeacher.identityType;
   const subject =
     moduleInfo?.subject ?? "Pendidikan Jasmani, Olahraga, dan Kesehatan (PJOK)";
-  const phaseClass = `${moduleInfo?.phase ?? ""} / Kelas ${topic.classGrade}`;
-  const mainMaterial = moduleInfo?.mainMaterial ?? topic.title;
+  const romanGrades = ["", "I", "II", "III", "IV", "V", "VI"];
+  const classRoman = romanGrades[topic.classGrade] ?? String(topic.classGrade);
+  const phaseClass = `${moduleInfo?.phase ?? ""} / Kelas ${classRoman}`;
+  const materialName = moduleInfo?.mainMaterial || topic.title;
+  const subMaterial = moduleInfo?.subMaterial?.trim() ?? "";
+  const normalizedMaterial = materialName.toLocaleLowerCase("id-ID");
+  const normalizedSubMaterial = subMaterial.toLocaleLowerCase("id-ID");
+  const mainMaterial =
+    subMaterial && !normalizedMaterial.includes(normalizedSubMaterial)
+      ? `${materialName} (${subMaterial})`
+      : materialName;
   const hasContent = (value?: string) =>
     Boolean(
-      value &&
-        (/<img\b/i.test(value) || value.replace(/<[^>]*>/g, "").trim()),
+      value && (/<img\b/i.test(value) || value.replace(/<[^>]*>/g, "").trim()),
     );
   const hasAssessmentInstrument = Boolean(
     hasContent(moduleAppendices.assessmentInstruments) ||
@@ -498,7 +513,7 @@ export function buildAdministrationDocumentHtml({
         ${knowledgeAssessmentTable(students, moduleAssessments.knowledgeScores)}
         <h3>Format Penilaian Praktik</h3>
         <table>
-          ${infoRow("Satuan Pendidikan", state.school.name)}
+          ${infoRow("Satuan Pendidikan", schoolName)}
           ${infoRow("Mata Pelajaran", subject)}
           ${infoRow("Kelas/Semester", `Kelas ${topic.classGrade}/${moduleInfo?.semester ?? ""}`)}
           ${infoRow("Tahun Pelajaran", moduleInfo?.academicYear)}
@@ -588,15 +603,22 @@ export function buildAdministrationDocumentHtml({
       .answer-line { border-bottom: 1px dotted #6b7280; min-height: 20px; }
       .muted { color: #4b5563; }
       .center { text-align: center; }
-      .cover { min-height: 250mm; padding-top: 45mm; text-align: center; page-break-after: always; }
-      .cover-title { font-size: 26pt; font-weight: bold; text-transform: uppercase; margin-bottom: 12px; }
-      .cover-subtitle { font-size: 15pt; margin-top: 16px; }
-      .cover-box { border: 2px solid #111827; display: inline-block; margin: 32px auto; padding: 16px 24px; min-width: 118mm; }
+      .cover { min-height: 267mm; padding: 0; text-align: center !important; mso-text-align: center; page-break-after: always; }
+      .cover-title { font-size: 17pt; font-weight: bold; margin: 0 0 2px; text-transform: uppercase; }
+      .cover-subtitle { font-size: 15pt; font-weight: bold; line-height: 1.15; margin: 0; text-transform: uppercase; }
+      .cover-class { font-size: 15pt; font-weight: bold; line-height: 1.15; margin: 0; text-transform: uppercase; }
+      .cover-material-label { font-size: 14pt; font-weight: bold; margin: 3px 0 0; text-transform: uppercase; }
+      .cover-material { font-size: 14pt; font-weight: bold; line-height: 1.15; margin: 0; text-transform: uppercase; }
+      .cover-logo { display: block; width: auto; height: auto; max-width: 74mm; max-height: 74mm; margin: 27mm auto 31mm; object-fit: contain; }
+      .cover-author { font-size: 15pt; font-weight: bold; line-height: 1.16; margin: 0; text-transform: uppercase; }
+      .cover-footer { font-size: 15pt; font-weight: bold; line-height: 1.16; margin: 31mm 0 0; text-transform: uppercase; }
       .signature td { height: 90px; }
       .module-sheet { border: 1px solid #000000; margin: 0 0 14px; page-break-inside: auto; }
+      table.module-sheet { border: 1px solid #000000 !important; mso-border-alt: solid #000000 .75pt; mso-cellspacing: 0; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+      td.module-sheet-frame { border: 1px solid #000000 !important; mso-border-alt: solid #000000 .75pt; padding: 0 !important; mso-padding-alt: 0in 0in 0in 0in; }
       .sheet-title { background: #DFEBEB; color: #000000; font-size: 10.5pt; font-weight: bold; line-height: 1.1; padding: 4px 8px; text-transform: uppercase; }
       .sheet-title.competency { background: #B1E3D4; }
-      .sheet-subtitle { background: #001F5F; border-top: 1px solid #000000; border-bottom: 1px solid #000000; color: #ffffff; font-size: 10.5pt; font-weight: bold; line-height: 1.1; padding: 4px 12px; text-transform: uppercase; }
+      .sheet-subtitle { background: #001F5F; border: 0; color: #ffffff; font-size: 10.5pt; font-weight: bold; line-height: 1.1; padding: 4px 12px; text-transform: uppercase; }
       .sheet-content { padding: 5px 10px; }
       .sheet-content p { margin: 0 0 5px; }
       .sheet-content p:last-child { margin-bottom: 0; }
@@ -626,26 +648,24 @@ export function buildAdministrationDocumentHtml({
     </style>
   </head>
   <body>
-    <section class="cover">
-      <p class="cover-title">MODUL AJAR</p>
-      <p class="cover-subtitle">${escapeHtml(subject)}</p>
-      <div class="cover-box">
-        <p><strong>Kelas ${topic.classGrade} SD</strong></p>
-        <p><strong>Materi Pokok:</strong> ${escapeHtml(mainMaterial)}</p>
-        <p><strong>Topik:</strong> ${escapeHtml(topic.title)}</p>
-      </div>
-      <p>${escapeHtml(state.school.name)}</p>
-      <p>${escapeHtml(moduleInfo?.academicYear ?? "Tahun ajaran belum diisi")}</p>
+    <section align="center" class="cover" style="text-align:center;">
+      <p align="center" class="cover-title" style="text-align:center;">MODUL AJAR</p>
+      <p align="center" class="cover-subtitle" style="text-align:center;">${escapeHtml(subject)}</p>
+      <p align="center" class="cover-class" style="text-align:center;">KELAS ${classRoman} SD</p>
+      <p align="center" class="cover-material-label" style="text-align:center;">MATERI POKOK</p>
+      <p align="center" class="cover-material" style="text-align:center;">${escapeHtml(mainMaterial)}</p>
+      ${documentTeacher.institutionLogoUrl ? `<p align="center" style="text-align:center;"><img align="center" class="cover-logo" src="${escapeHtml(documentTeacher.institutionLogoUrl)}" alt="Logo ${escapeHtml(documentTeacher.institutionName || schoolName)}" /></p>` : ""}
+      <p align="center" class="cover-author" style="text-align:center;">DISUSUN OLEH : ${escapeHtml(documentTeacher.name)}<br>${escapeHtml(documentTeacher.identityType)} : ${escapeHtml(documentTeacher.identityNumber || "-")}</p>
+      <p align="center" class="cover-footer" style="text-align:center;">${escapeHtml(documentTeacher.institutionName || schoolName)}</p>
     </section>
 
-    <h1>MODUL AJAR</h1>
 
-    <section class="module-sheet">
+    <table border="1" cellspacing="0" cellpadding="0" class="module-sheet"><tbody><tr><td class="module-sheet-frame">
       <div class="sheet-title">Informasi Umum</div>
       <div class="sheet-subtitle">A. Identitas Modul</div>
       <table class="identity-table">
-        ${infoRow("Nama Penyusun", state.teacher.name)}
-        ${infoRow("Instansi", state.school.name)}
+        ${infoRow("Nama Penyusun", documentTeacher.name)}
+        ${infoRow("Instansi", schoolName)}
         ${infoRow("Tahun Ajaran", moduleInfo?.academicYear)}
         ${infoRow("Mata Pelajaran", subject)}
         ${infoRow("Fase/Kelas", phaseClass)}
@@ -678,9 +698,9 @@ export function buildAdministrationDocumentHtml({
         <p><strong>Berdiferensiasi:</strong></p>
         <ul class="sheet-list"><li>${valueOrPlaceholder(moduleInfo?.differentiationStrategy)}</li></ul>
       </div>
-    </section>
+    </td></tr></tbody></table>
 
-    <section class="module-sheet">
+    <table border="1" cellspacing="0" cellpadding="0" class="module-sheet"><tbody><tr><td class="module-sheet-frame">
       <div class="sheet-title competency">Kompetensi Inti</div>
       <div class="sheet-subtitle">A. Capaian Pembelajaran</div>
       <ul class="sheet-list"><li>${valueOrPlaceholder(competency?.learningAchievements)}</li></ul>
@@ -698,26 +718,26 @@ export function buildAdministrationDocumentHtml({
         <p><strong>Kognitif:</strong> ${valueOrPlaceholder(competency?.cognitivePreparation)}</p>
         <p><strong>Psikomotor:</strong> ${valueOrPlaceholder(competency?.psychomotorPreparation)}</p>
       </div>
-    </section>
+    </td></tr></tbody></table>
 
-    <section class="module-sheet">
+    <table border="1" cellspacing="0" cellpadding="0" class="module-sheet"><tbody><tr><td class="module-sheet-frame">
       <div class="sheet-subtitle">G. Urutan Kegiatan Pembelajaran</div>
       ${activityPhaseBlock(moduleActivities.opening, "Kegiatan Pendahuluan")}
       ${activityPhaseBlock(moduleActivities.core, "Kegiatan Inti")}
       ${activityPhaseBlock(moduleActivities.closing, "Kegiatan Penutup")}
-    </section>
+    </td></tr></tbody></table>
 
-    <section class="module-sheet">
+    <table border="1" cellspacing="0" cellpadding="0" class="module-sheet"><tbody><tr><td class="module-sheet-frame">
       <div class="sheet-subtitle">H. Refleksi Guru</div>
       <div class="sheet-content">${textBlock(moduleActivities.teacherReflection)}</div>
-    </section>
+    </td></tr></tbody></table>
 
-    <section class="module-sheet">
+    <table border="1" cellspacing="0" cellpadding="0" class="module-sheet"><tbody><tr><td class="module-sheet-frame">
       <div class="sheet-subtitle">I. Refleksi Peserta Didik</div>
       <div class="sheet-content">${textBlock(moduleActivities.studentReflection)}</div>
-    </section>
+    </td></tr></tbody></table>
 
-    <section class="module-sheet">
+    <table border="1" cellspacing="0" cellpadding="0" class="module-sheet"><tbody><tr><td class="module-sheet-frame">
       <div class="sheet-subtitle">J. Asesmen/Penilaian</div>
     <h3>Asesmen Pembelajaran</h3>
     <h3>Asesmen Diagnostik</h3>
@@ -755,23 +775,23 @@ export function buildAdministrationDocumentHtml({
 
     <h3>Refleksi Diri Siswa (Sumatif)</h3>
     <div class="sheet-content">${richTextBlock(moduleAssessments.studentSelfReflection)}</div>
-    </section>
+    </td></tr></tbody></table>
 
-    <section class="module-sheet">
+    <table border="1" cellspacing="0" cellpadding="0" class="module-sheet"><tbody><tr><td class="module-sheet-frame">
       <div class="sheet-subtitle">K. Pengayaan dan Remedial</div>
       <table>
       ${infoRow("Pengayaan", moduleInfo?.enrichment)}
       ${infoRow("Remedial", moduleInfo?.remedial)}
       </table>
-    </section>
+    </td></tr></tbody></table>
 
-    <section class="module-sheet page-break">
+    <table border="1" cellspacing="0" cellpadding="0" class="module-sheet page-break"><tbody><tr><td class="module-sheet-frame">
       <div class="sheet-subtitle">L. Lampiran</div>
     <ul class="sheet-list">${appendixSections.map((section) => `<li>${section.number}. ${escapeHtml(section.title)} (Terlampir)</li>`).join("") || "<li><em>Belum ada lampiran.</em></li>"}</ul>
     ${appendixSections.map((section) => `<h3 class="page-break">Lampiran ${section.number} - ${escapeHtml(section.title)}</h3>${section.content}`).join("")}
-    </section>
+    </td></tr></tbody></table>
 
-    <section class="module-sheet">
+    <table border="1" cellspacing="0" cellpadding="0" class="module-sheet"><tbody><tr><td class="module-sheet-frame">
       <div class="sheet-subtitle">M. Mengetahui / Mengesahkan</div>
     <p class="center">${escapeHtml(moduleInfo?.approvalPlace ?? "Tempat belum diisi")}, ${escapeHtml(moduleInfo?.approvalDate ?? "Tanggal belum diisi")}</p>
     <table class="signature">
@@ -784,11 +804,11 @@ export function buildAdministrationDocumentHtml({
         <td>&nbsp;</td>
       </tr>
       <tr>
-        <td>${escapeHtml(state.school.principalName)}<br>NIP. ${escapeHtml(state.school.principalNip)}</td>
-        <td>${escapeHtml(state.teacher.name)}<br>${escapeHtml(teacherIdentity)}</td>
+        <td>${escapeHtml(documentTeacher.principalName || state.school.principalName)}<br>NIP. ${escapeHtml(documentTeacher.principalNip || state.school.principalNip)}</td>
+        <td>${escapeHtml(documentTeacher.name)}<br>${escapeHtml(teacherIdentity)}</td>
       </tr>
     </table>
-    </section>
+    </td></tr></tbody></table>
   </body>
 </html>`;
 }

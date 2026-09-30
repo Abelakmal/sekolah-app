@@ -14,6 +14,11 @@ export type Teacher = {
   identityType: 'NIP' | 'NUPTK' | 'No UKG' | 'NIM'
   subject: 'PJOK'
   classes: ClassGrade[]
+  schoolName: string
+  principalName: string
+  principalNip: string
+  institutionName: string
+  institutionLogoUrl: string
 }
 
 export type SchoolProfile = {

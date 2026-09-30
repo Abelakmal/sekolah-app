@@ -9,7 +9,8 @@ import { EmptyState } from '../../shared/components/EmptyState'
 import { Toast } from '../../shared/components/Toast'
 import { confirmDelete } from '../../shared/utils/confirmDelete'
 import { DocumentPreviewModal } from '../builder/DocumentPreviewModal'
-import { buildAdministrationDocumentHtml, downloadAdministrationDocument } from '../builder/documentExport'
+import { buildAdministrationDocumentHtml } from '../builder/documentExport'
+import { buildAdministrationDocumentDocxBlob, downloadAdministrationDocumentDocx } from '../builder/documentExportDocx'
 
 type ArchivePreview = {
   draft: AdministrationDraft
@@ -70,13 +71,18 @@ export function ArchivePage({
     showToast('Draft berhasil diduplikasi.')
   }
 
-  function downloadDraft(draft: AdministrationDraft, topic: LearningTopic) {
-    downloadAdministrationDocument({ selected: draft, state, topic })
+  async function downloadDraft(draft: AdministrationDraft, topic: LearningTopic, blob?: Blob) {
+    try {
+      await downloadAdministrationDocumentDocx({ selected: draft, state, topic }, blob)
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Export DOCX gagal.')
+      return
+    }
     setState((current) => ({
       ...current,
       drafts: current.drafts.map((item) => (item.id === draft.id ? { ...item, lastDownloadedAt: new Date().toISOString() } : item)),
     }))
-    showToast('File Word mulai diunduh.')
+    showToast('File DOCX mulai diunduh.')
   }
 
   return (
@@ -173,13 +179,13 @@ export function ArchivePage({
                     disabled={!topic}
                     onClick={() => {
                       if (topic) {
-                        downloadDraft(draft, topic)
+                        void downloadDraft(draft, topic)
                       }
                     }}
                     type="button"
                   >
                     <Download size={16} />
-                    Download Word
+                    Download DOCX
                   </button>
                   <button className="btn-secondary" onClick={() => duplicateDraft(draft)} type="button">
                     <Copy size={16} />
@@ -217,9 +223,10 @@ export function ArchivePage({
       {preview && (
         <DocumentPreviewModal
           html={preview.html}
+          docxBlob={() => buildAdministrationDocumentDocxBlob({ selected: preview.draft, state, topic: preview.topic })}
           onClose={() => setPreview(null)}
-          onDownload={() => {
-            downloadDraft(preview.draft, preview.topic)
+          onDownload={(blob) => {
+            void downloadDraft(preview.draft, preview.topic, blob)
           }}
           title={preview.draft.title}
         />

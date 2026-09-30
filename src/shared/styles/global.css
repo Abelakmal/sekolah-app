@@ -117,6 +117,16 @@ button:disabled {
   -webkit-overflow-scrolling: touch;
 }
 
+.docx-native-preview .docx-wrapper {
+  background: #e2e8f0;
+  padding: 0;
+}
+
+.docx-native-preview .docx {
+  margin: 0 auto 16px;
+  box-shadow: 0 1px 4px rgb(15 23 42 / 18%);
+}
+
 @media (max-width: 640px) {
   .rich-editor-toolbar {
     flex-wrap: nowrap;

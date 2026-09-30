@@ -311,6 +311,11 @@ export const initialState: AppState = {
     identityType: 'No UKG',
     subject: 'PJOK',
     classes: [1, 2, 3, 4, 5, 6],
+    schoolName: 'SD Negeri 009 Sangau',
+    principalName: 'Sri Yustina, S.Pd',
+    principalNip: '19820206 200801 2 007',
+    institutionName: 'Universitas Bengkulu',
+    institutionLogoUrl: '',
   },
   teachers: [
     {
@@ -321,6 +326,11 @@ export const initialState: AppState = {
       identityType: 'No UKG',
       subject: 'PJOK',
       classes: [1, 2, 3, 4, 5, 6],
+      schoolName: 'SD Negeri 009 Sangau',
+      principalName: 'Sri Yustina, S.Pd',
+      principalNip: '19820206 200801 2 007',
+      institutionName: 'Universitas Bengkulu',
+      institutionLogoUrl: '',
     },
   ],
   activeTeacherId: 'teacher-1',

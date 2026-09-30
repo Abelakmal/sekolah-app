@@ -11,6 +11,11 @@ type CreateTeacherRequest = {
   identityType: Teacher['identityType']
   name: string
   password: string
+  schoolName: string
+  principalName: string
+  principalNip: string
+  institutionName: string
+  institutionLogoUrl: string
 }
 
 type UpdateTeacherRequest = Omit<CreateTeacherRequest, 'password'> & { password?: string }
@@ -64,7 +69,7 @@ export async function GET(request: Request) {
 
   const { data: teachers, error } = await admin.adminClient
     .from('teachers')
-    .select('id,profile_id,name,email,identity_type,identity_number,subject,classes')
+    .select('id,profile_id,name,email,identity_type,identity_number,subject,classes,school_name,principal_name,principal_nip,institution_name,institution_logo_url')
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -85,6 +90,11 @@ export async function POST(request: Request) {
   const identityNumber = payload.identityNumber?.trim() ?? ''
   const identityType = payload.identityType
   const classes = payload.classes?.filter((grade) => Number.isInteger(grade) && grade >= 1 && grade <= 6) ?? []
+  const schoolName = payload.schoolName?.trim() ?? ''
+  const principalName = payload.principalName?.trim() ?? ''
+  const principalNip = payload.principalNip?.trim() ?? ''
+  const institutionName = payload.institutionName?.trim() ?? ''
+  const institutionLogoUrl = payload.institutionLogoUrl?.trim() ?? ''
 
   if (!name || !email || !password || !identityType || classes.length === 0) {
     return NextResponse.json({ error: 'Nama, email, password, identitas, dan kelas wajib diisi.' }, { status: 400 })
@@ -128,8 +138,13 @@ export async function POST(request: Request) {
       identity_number: identityNumber,
       subject: 'PJOK',
       classes,
+      school_name: schoolName,
+      principal_name: principalName,
+      principal_nip: principalNip,
+      institution_name: institutionName,
+      institution_logo_url: institutionLogoUrl,
     })
-    .select('id,profile_id,name,email,identity_type,identity_number,subject,classes')
+    .select('id,profile_id,name,email,identity_type,identity_number,subject,classes,school_name,principal_name,principal_nip,institution_name,institution_logo_url')
     .single()
 
   if (teacherError || !teacher) {
@@ -165,6 +180,11 @@ export async function PATCH(request: Request) {
   const identityType = payload.identityType
   const password = payload.password?.trim()
   const classes = payload.classes?.filter((grade) => Number.isInteger(grade) && grade >= 1 && grade <= 6) ?? []
+  const schoolName = payload.schoolName?.trim() ?? ''
+  const principalName = payload.principalName?.trim() ?? ''
+  const principalNip = payload.principalNip?.trim() ?? ''
+  const institutionName = payload.institutionName?.trim() ?? ''
+  const institutionLogoUrl = payload.institutionLogoUrl?.trim() ?? ''
 
   if (!id || !name || !email || !identityType || classes.length === 0) {
     return NextResponse.json({ error: 'Data guru belum lengkap.' }, { status: 400 })
@@ -203,10 +223,15 @@ export async function PATCH(request: Request) {
       identity_type: identityType,
       identity_number: identityNumber,
       classes,
+      school_name: schoolName,
+      principal_name: principalName,
+      principal_nip: principalNip,
+      institution_name: institutionName,
+      institution_logo_url: institutionLogoUrl,
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
-    .select('id,profile_id,name,email,identity_type,identity_number,subject,classes')
+    .select('id,profile_id,name,email,identity_type,identity_number,subject,classes,school_name,principal_name,principal_nip,institution_name,institution_logo_url')
     .single()
 
   if (teacherError || !teacher) {

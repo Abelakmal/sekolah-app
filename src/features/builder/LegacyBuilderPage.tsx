@@ -1055,6 +1055,7 @@ function CompletionGrid({ completion }: { completion: CompletionItem[] }) {
 }
 
 export function SaveAdministrationModal({
+  isSaving = false,
   completion,
   missingRequired,
   onClose,
@@ -1065,6 +1066,7 @@ export function SaveAdministrationModal({
   state,
   topic,
 }: {
+  isSaving?: boolean;
   completion: CompletionItem[];
   missingRequired: string[];
   onClose: () => void;
@@ -1089,6 +1091,7 @@ export function SaveAdministrationModal({
           <button
             className="icon-button"
             onClick={onClose}
+            disabled={isSaving}
             title="Tutup"
             type="button"
           >
@@ -1146,16 +1149,17 @@ export function SaveAdministrationModal({
         </div>
 
         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <button className="btn-secondary" onClick={onClose} type="button">
+          <button className="btn-secondary" disabled={isSaving} onClick={onClose} type="button">
             Batal
           </button>
-          <button className="btn-secondary" onClick={onSave} type="button">
+          <button className="btn-secondary" disabled={isSaving} onClick={onSave} type="button">
             <Save size={16} />
-            Simpan Draft
+            {isSaving ? 'Menyimpan...' : 'Simpan ke Arsip'}
           </button>
           <button
             className="btn-primary"
             onClick={onSaveAndDownload}
+            disabled={isSaving}
             type="button"
           >
             <Download size={16} />

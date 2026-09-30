@@ -234,6 +234,12 @@ export function App() {
       activeTopicTab={activeTopicTab}
       activeView={activeView}
       onLogout={() => void logout()}
+      onAcademicYearChange={(year) => setState((current) => {
+        const preferences = { ...current.academicYearPreferences }
+        if (year === 'auto') delete preferences[current.activeTeacherId]
+        else preferences[current.activeTeacherId] = year
+        return { ...current, academicYearPreferences: preferences }
+      })}
       onTopicTabChange={setActiveTopicTab}
       onViewChange={setActiveView}
       role={role}

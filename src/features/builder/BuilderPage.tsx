@@ -5,6 +5,7 @@ import type { AppState, BankTab, ClassGrade, LearningTopic } from '../../core/ty
 import { getModuleCompletion } from '../../core/moduleCompletion'
 import { createId } from '../../core/utils'
 import { createDocumentSnapshot } from '../../core/documentSnapshot'
+import { insertAdministrationArchive, updateAdministrationArchive } from '../../core/supabase/administrationArchives'
 import { Toast } from '../../shared/components/Toast'
 import { SaveAdministrationModal } from './LegacyBuilderPage'
 import { DocxDocumentPreview } from './DocxDocumentPreview'
@@ -21,6 +22,7 @@ export function BuilderPage({ selectedTopic, setState, state, onEditSection }: {
   const [topicId, setTopicId] = useState(selectedTopic.id)
   const [grade, setGrade] = useState<ClassGrade>(selectedTopic.classGrade)
   const [showSaveModal, setShowSaveModal] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [toast, setToast] = useState('')
   const [preparedBlob, setPreparedBlob] = useState<Blob | undefined>(undefined)
   const topics = state.topics.filter((item) => item.teacherId === state.activeTeacherId)
@@ -40,13 +42,16 @@ export function BuilderPage({ selectedTopic, setState, state, onEditSection }: {
     try {
       await downloadAdministrationDocumentDocx({ state, topic, selected }, preparedBlob)
       setToast('File Word berhasil disiapkan.')
+      return true
     } catch (error) {
       setToast(error instanceof Error ? error.message : 'Download Word gagal.')
+      return false
     }
   }
 
-  function saveDraft(andDownload = false) {
-    if (!topic) return
+  async function saveDraft(andDownload = false) {
+    if (!topic || isSaving) return
+    setIsSaving(true)
     const now = new Date().toISOString()
     const draft = {
       id: createId('draft'), teacherId: state.activeTeacherId,
@@ -56,10 +61,24 @@ export function BuilderPage({ selectedTopic, setState, state, onEditSection }: {
       ...selected, createdAt: now, updatedAt: now,
       snapshot: createDocumentSnapshot(state, topic),
     }
-    setState((current) => ({ ...current, drafts: [draft, ...current.drafts] }))
-    setShowSaveModal(false)
-    setToast('Dokumen disimpan ke Arsip beserta salinan isinya.')
-    if (andDownload) void download()
+    try {
+      const saved = await insertAdministrationArchive(draft)
+      setState((current) => ({ ...current, drafts: [saved, ...current.drafts] }))
+      setShowSaveModal(false)
+      setToast('Dokumen dan salinan isinya berhasil disimpan ke Supabase.')
+      if (andDownload && await download()) {
+        try {
+          const downloaded = await updateAdministrationArchive(saved, { lastDownloadedAt: new Date().toISOString() })
+          setState((current) => ({ ...current, drafts: current.drafts.map((item) => item.id === downloaded.id ? downloaded : item) }))
+        } catch (error) {
+          setToast(`Arsip sudah disimpan dan Word disiapkan, tetapi riwayat download belum tersimpan: ${error instanceof Error ? error.message : 'kesalahan jaringan'}`)
+        }
+      }
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : 'Arsip gagal disimpan ke Supabase.')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -94,7 +113,7 @@ export function BuilderPage({ selectedTopic, setState, state, onEditSection }: {
         </aside>
         <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-4 sm:p-5">
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0"><h3 className="break-words font-semibold">Preview Dokumen Lengkap</h3><p className="mt-1 break-words text-sm text-slate-500">{topic.title}</p></div>
+            <div className="min-w-0"><h3 className="break-words font-semibold">Preview Dokumen Lengkap</h3><p className="mt-1 break-words text-sm text-slate-500">{topic.title} · Tahun ajaran {state.moduleInfo[topic.id]?.academicYear || 'belum diisi'}</p></div>
             <div className="flex shrink-0 flex-wrap gap-2">
               <button className="btn-secondary" onClick={() => setShowSaveModal(true)} type="button"><Save size={16} />Simpan ke Arsip</button>
               <button className="btn-primary disabled:opacity-50" disabled={!preparedBlob} onClick={() => void download()} type="button"><Download size={16} />Download Word</button>
@@ -104,6 +123,7 @@ export function BuilderPage({ selectedTopic, setState, state, onEditSection }: {
         </section>
       </div> : <p className="rounded-lg border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-500">Belum ada topik di kelas ini. Buat topik melalui menu Topik Pembelajaran terlebih dahulu.</p>}
       {showSaveModal && topic && completion && <SaveAdministrationModal
+        isSaving={isSaving}
         completion={completion.sections} missingRequired={completion.missing}
         onClose={() => setShowSaveModal(false)} onSave={() => saveDraft()} onSaveAndDownload={() => saveDraft(true)}
         progress={completion.progress} selected={selected} state={state} topic={topic}

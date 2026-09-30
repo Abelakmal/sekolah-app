@@ -27,6 +27,7 @@ import {
   readAttachment,
 } from "../../../core/utils";
 import { getModuleActivities } from "../../../core/moduleActivities";
+import { createModuleInfo } from "../../../core/moduleInfo";
 import { getModuleAppendices } from "../../../core/moduleAppendices";
 import { getModuleAssessments } from "../../../core/moduleAssessments";
 import { getModuleWorksheets } from "../../../core/moduleWorksheets";
@@ -369,13 +370,7 @@ function BankTabContent({
 
 function getModuleInfo(state: AppState, topic: LearningTopic): ModuleInfo {
   return (
-    state.moduleInfo[topic.id] ?? {
-      ...fallbackModuleInfo,
-      phase: topic.classGrade >= 5 ? "C" : topic.classGrade >= 3 ? "B" : "A",
-      mainMaterial: topic.title,
-      subMaterial: topic.title,
-      targetStudents: `Peserta didik kelas ${topic.classGrade} dengan kemampuan bervariasi.`,
-    }
+    state.moduleInfo[topic.id] ?? createModuleInfo(topic, "")
   );
 }
 
@@ -595,32 +590,6 @@ function InfoChip({
     </div>
   );
 }
-
-const fallbackModuleInfo: ModuleInfo = {
-  academicYear: "2024/2025",
-  semester: "Ganjil",
-  phase: "",
-  subject: "Pendidikan Jasmani, Olahraga, dan Kesehatan (PJOK)",
-  mainMaterial: "",
-  subMaterial: "",
-  chapterMeeting: "",
-  timeAllocation: "",
-  learningMode: "Teori dan Praktek",
-  learningModel: "",
-  learningMethods: "",
-  differentiationStrategy: "",
-  media: "",
-  toolsAndMaterials: "",
-  learningResources: "",
-  practiceArea: "",
-  sportEquipment: "",
-  enrichment: "",
-  remedial: "",
-  approvalPlace: "",
-  approvalDate: "",
-  studentCount: 0,
-  targetStudents: "",
-};
 
 function ModuleInfoTab({
   setState,

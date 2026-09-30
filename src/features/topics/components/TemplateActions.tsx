@@ -16,6 +16,7 @@ import type {
   Worksheet,
 } from '../../../core/types'
 import { createId } from '../../../core/utils'
+import { getActiveAcademicYear } from '../../../core/academicYear'
 import { confirmDelete } from '../../../shared/utils/confirmDelete'
 
 export function TemplateActions({
@@ -96,7 +97,7 @@ function applyPjokTemplate(state: AppState, topic: LearningTopic): AppState {
     ...state,
     moduleInfo: {
       ...state.moduleInfo,
-      [topic.id]: mergeTextFields(info, getTemplateInfo(topic)),
+      [topic.id]: mergeTextFields(info, getTemplateInfo(topic, getActiveAcademicYear(state))),
     },
     moduleCompetencies: {
       ...state.moduleCompetencies,
@@ -168,7 +169,7 @@ function duplicateModuleData(state: AppState, sourceTopicId: string, targetTopic
     materials: replaceTopicItems(state.materials, sourceTopicId, targetTopicId, 'material'),
     activities: replaceTopicItems(state.activities, sourceTopicId, targetTopicId, 'activity'),
     assessments: replaceTopicItems(state.assessments, sourceTopicId, targetTopicId, 'assessment'),
-    drafts: state.drafts.filter((draft) => draft.topicId !== targetTopicId),
+    drafts: state.drafts,
   }
 }
 
@@ -202,9 +203,9 @@ function mergeTextFields<T extends Record<string, unknown> | undefined>(current:
   ) as NonNullable<T>
 }
 
-function getTemplateInfo(topic: LearningTopic): ModuleInfo {
+function getTemplateInfo(topic: LearningTopic, academicYear: string): ModuleInfo {
   return {
-    academicYear: '2024/2025',
+    academicYear,
     semester: 'Ganjil',
     phase: topic.classGrade >= 5 ? 'C' : topic.classGrade >= 3 ? 'B' : 'A',
     subject: 'Pendidikan Jasmani, Olahraga, dan Kesehatan (PJOK)',

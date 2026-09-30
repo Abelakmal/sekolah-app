@@ -1,14 +1,14 @@
 import { initialState } from './data/seed'
-import type { AdministrationDraft, AppState, LearningTopic, ModuleInfo, Student, Teacher } from './types'
+import type { AppState, LearningTopic, ModuleInfo, Student, Teacher } from './types'
 
 export const appStorageKey = 'administrasiGuru.appState.v1'
-export const appBackupStorageKey = 'administrasiGuru.manualBackup.v1'
 
 export function loadState(): AppState {
   if (typeof window === 'undefined') {
     return initialState
   }
 
+  window.localStorage.removeItem('administrasiGuru.manualBackup.v1')
   const stored = window.localStorage.getItem(appStorageKey)
 
   if (!stored) {
@@ -17,6 +17,10 @@ export function loadState(): AppState {
 
   try {
     const parsed = JSON.parse(stored) as Partial<AppState>
+    if ('drafts' in parsed) {
+      delete parsed.drafts
+      window.localStorage.setItem(appStorageKey, JSON.stringify(parsed))
+    }
     return normalizeState(parsed)
   } catch {
     return initialState
@@ -26,7 +30,10 @@ export function loadState(): AppState {
 export function saveState(state: AppState) {
   if (typeof window === 'undefined') return
 
-  window.localStorage.setItem(appStorageKey, JSON.stringify(state))
+  const persisted: Partial<AppState> = { ...state }
+  delete persisted.drafts
+  window.localStorage.setItem(appStorageKey, JSON.stringify(persisted))
+  window.localStorage.removeItem('administrasiGuru.manualBackup.v1')
 }
 
 export function normalizeState(parsed: Partial<AppState>): AppState {
@@ -71,7 +78,7 @@ export function normalizeState(parsed: Partial<AppState>): AppState {
       ...parsed.moduleAppendices,
     },
     topics: normalizeOwnedItems(parsed.topics ?? initialState.topics, activeTeacherId),
-    drafts: normalizeDrafts(parsed.drafts ?? initialState.drafts, activeTeacherId),
+    drafts: [],
   } as AppState
 }
 
@@ -106,20 +113,10 @@ function normalizeTeachers(parsedTeachers: Teacher[] | undefined, legacyTeacher:
   }))
 }
 
-function normalizeOwnedItems<T extends LearningTopic | Student | AdministrationDraft>(items: T[], teacherId: string): T[] {
+function normalizeOwnedItems<T extends LearningTopic | Student>(items: T[], teacherId: string): T[] {
   return items.map((item) => ({
     ...item,
     teacherId: item.teacherId ?? teacherId,
-  }))
-}
-
-function normalizeDrafts(drafts: AdministrationDraft[], teacherId: string): AdministrationDraft[] {
-  return drafts.map((draft) => ({
-    ...draft,
-    teacherId: draft.teacherId ?? teacherId,
-    status: draft.status ?? 'Draft',
-    version: draft.version ?? 1,
-    changeNotes: draft.changeNotes ?? 'Dokumen dibuat dari Penyusun Administrasi.',
   }))
 }
 

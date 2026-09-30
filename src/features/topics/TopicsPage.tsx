@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { LoaderCircle, Plus, Save, X } from "lucide-react";
 import { supabase } from "../../core/supabase/client";
+import { getActiveAcademicYear } from "../../core/academicYear";
+import { createModuleInfo } from "../../core/moduleInfo";
+import { getTopicModuleData } from "../../core/supabase/topicModuleData";
 import { mapSupabaseLearningTopic } from "../../core/supabase/types";
 import type { SupabaseLearningTopic } from "../../core/supabase/types";
 import type { AppState, ClassGrade, LearningTopic } from "../../core/types";
@@ -192,11 +195,20 @@ export function TopicsPage({
         }
 
         const savedTopic = mapSupabaseLearningTopic(data);
+        const info = createModuleInfo(savedTopic, getActiveAcademicYear(state));
+        const moduleState = { ...state, moduleInfo: { ...state.moduleInfo, [savedTopic.id]: info } };
+        const { error: moduleError } = await supabase.from("topic_module_data").upsert({
+          topic_id: savedTopic.id,
+          data: getTopicModuleData(moduleState, savedTopic.id),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "topic_id" });
         setState((current) => ({
           ...current,
           topics: [savedTopic, ...current.topics],
+          moduleInfo: { ...current.moduleInfo, [savedTopic.id]: info },
         }));
-        showToast("Topik pembelajaran berhasil ditambahkan ke Supabase.");
+        if (moduleError) setTopicError(`Topik sudah dibuat, tetapi tahun ajarannya belum tersimpan ke Supabase: ${moduleError.message}. Buka Informasi Modul untuk mencoba menyimpan kembali.`);
+        else showToast("Topik pembelajaran berhasil ditambahkan ke Supabase.");
       }
 
       closeForm();
@@ -270,9 +282,7 @@ export function TopicsPage({
       assessments: current.assessments.filter(
         (item) => item.topicId !== topicId,
       ),
-      drafts: current.drafts.filter(
-        (draftItem) => draftItem.topicId !== topicId,
-      ),
+      drafts: current.drafts,
     }));
     setDeletingTopicId("");
     showToast("Topik pembelajaran berhasil dihapus dari Supabase.");

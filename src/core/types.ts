@@ -235,6 +235,7 @@ export type ModuleAppendices = {
 }
 
 export type AdministrationDraft = {
+  storage?: 'supabase'
   snapshot?: {
     topic: LearningTopic
     teacher: Teacher
@@ -258,6 +259,7 @@ export type AdministrationDraft = {
 }
 
 export type AppState = {
+  academicYearPreferences?: Record<string, string>
   teacher: Teacher
   teachers: Teacher[]
   activeTeacherId: string

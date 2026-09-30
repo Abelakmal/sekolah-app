@@ -325,7 +325,7 @@ function renderContent({
         />
       )
     }
-    return <BuilderPage selectedTopic={selectedTopic} setState={setState} state={state} />
+    return <BuilderPage selectedTopic={selectedTopic} setState={setState} state={state} onEditSection={(topic, tab) => { goToTopic(topic); setActiveTopicTab(tab) }} />
   }
 
   if (activeView === 'archive') {

@@ -235,6 +235,12 @@ export type ModuleAppendices = {
 }
 
 export type AdministrationDraft = {
+  snapshot?: {
+    topic: LearningTopic
+    teacher: Teacher
+    school: SchoolProfile
+    moduleData: import('./supabase/topicModuleData').TopicModuleData
+  }
   id: string
   teacherId: string
   title: string

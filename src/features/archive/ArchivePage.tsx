@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { Copy, Download, Eye, Plus, Trash2 } from 'lucide-react'
 import { getModuleCompletion } from '../../core/moduleCompletion'
+import { getDraftDocumentInput } from '../../core/documentSnapshot'
 import type { AdministrationDraft, AppState, AppView, LearningTopic } from '../../core/types'
 import { className } from '../../core/utils'
 import { DraftSummary } from '../../shared/components/DraftSummary'
@@ -73,7 +74,7 @@ export function ArchivePage({
 
   async function downloadDraft(draft: AdministrationDraft, topic: LearningTopic, blob?: Blob) {
     try {
-      await downloadAdministrationDocumentDocx({ selected: draft, state, topic }, blob)
+      await downloadAdministrationDocumentDocx(getDraftDocumentInput(state, topic, draft), blob)
     } catch (error) {
       showToast(error instanceof Error ? error.message : 'Export DOCX gagal.')
       return
@@ -100,7 +101,7 @@ export function ArchivePage({
 
       <div className="grid gap-3">
         {teacherDrafts.map((draft) => {
-          const topic = state.topics.find((item) => item.id === draft.topicId)
+          const topic = draft.snapshot?.topic ?? state.topics.find((item) => item.id === draft.topicId)
           const status = topic ? getArchiveStatus(state, topic, draft) : { complete: 0, total: 7, progress: 0, missing: ['Topik sudah tidak tersedia'] }
 
           return (
@@ -165,7 +166,7 @@ export function ArchivePage({
                       if (!topic) return
                       setPreview({
                         draft,
-                        html: buildAdministrationDocumentHtml({ selected: draft, state, topic }),
+                        html: buildAdministrationDocumentHtml(getDraftDocumentInput(state, topic, draft)),
                         topic,
                       })
                     }}
@@ -202,7 +203,7 @@ export function ArchivePage({
                 </div>
               </div>
 
-              {topic && <DraftSummary selected={draft} state={state} topic={topic} compact />}
+              {topic && <DraftSummary selected={draft} state={getDraftDocumentInput(state, topic, draft).state} topic={topic} compact />}
             </article>
           )
         })}
@@ -211,10 +212,10 @@ export function ArchivePage({
             action={
               <button className="btn-primary" onClick={() => setActiveView('builder')} type="button">
                 <Plus size={16} />
-                Susun Administrasi
+                Buat Dokumen
               </button>
             }
-            text="Riwayat Modul Ajar yang disimpan dari Penyusun Administrasi akan tampil di sini."
+            text="Modul Ajar yang disimpan dari Buat Dokumen akan tampil di sini."
             title="Arsip Administrasi kosong"
           />
         )}
@@ -223,7 +224,7 @@ export function ArchivePage({
       {preview && (
         <DocumentPreviewModal
           html={preview.html}
-          docxBlob={() => buildAdministrationDocumentDocxBlob({ selected: preview.draft, state, topic: preview.topic })}
+          docxBlob={() => buildAdministrationDocumentDocxBlob(getDraftDocumentInput(state, preview.topic, preview.draft))}
           onClose={() => setPreview(null)}
           onDownload={(blob) => {
             void downloadDraft(preview.draft, preview.topic, blob)
@@ -237,7 +238,8 @@ export function ArchivePage({
 }
 
 function getArchiveStatus(state: AppState, topic: LearningTopic, draft: AdministrationDraft) {
-  return getModuleCompletion(state, topic, draft)
+  const input = getDraftDocumentInput(state, topic, draft)
+  return getModuleCompletion(input.state, input.topic, draft)
 }
 
 const statusTone: Record<AdministrationDraft['status'], string> = {

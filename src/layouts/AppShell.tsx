@@ -31,7 +31,7 @@ type AppShellProps = {
 const navItems: Array<{ id: AppView; label: string; icon: typeof BookOpenCheck; roles: UserRole[] }> = [
   { id: 'admin', label: 'Admin Guru', icon: UsersRound, roles: ['admin'] },
   { id: 'topics', label: 'Topik Pembelajaran', icon: BookOpenCheck, roles: ['teacher'] },
-  { id: 'builder', label: 'Penyusun Administrasi', icon: ClipboardList, roles: ['teacher'] },
+  { id: 'builder', label: 'Buat Dokumen', icon: ClipboardList, roles: ['teacher'] },
   { id: 'archive', label: 'Arsip Administrasi', icon: Archive, roles: ['teacher'] },
   { id: 'learning-devices', label: 'Perangkat Pembelajaran', icon: FileStack, roles: ['teacher'] },
 ]
@@ -299,7 +299,7 @@ function pageTitle(view: AppView, role: UserRole) {
     admin: 'Admin Guru',
     topics: 'Topik Pembelajaran',
     'topic-detail': 'Detail Topik Pembelajaran',
-    builder: 'Penyusun Administrasi',
+    builder: 'Buat Dokumen',
     archive: 'Arsip Administrasi',
     'learning-devices': 'Perangkat Pembelajaran',
   }
